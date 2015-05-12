@@ -1,2 +1,4 @@
 *.pyc
+*.history*
 docs/_build/
+examples/wikidata/
