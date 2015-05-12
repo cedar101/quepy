@@ -11,11 +11,32 @@
 """
 Domain specific language definitions.
 """
-
+from collections import namedtuple
 from copy import copy
+
 from quepy.expression import Expression
 from quepy.encodingpolicy import encoding_flexible_conversion
 
+def predicate(**kwargs):
+    def decorate(cls):
+        cls.Predicate = namedtuple('Predicate', 'label endpoint constraint')
+        for key, value in kwargs.iteritems():
+            setattr(cls, key, cls.Predicate(value, cls.endpoint, cls.constraint))
+        return cls
+    return decorate
+
+# class Predicate:
+#     """docstring for Predicate"""
+#     def __init__(self, label, endpoint=None, constraint=None):
+#         self.label = label
+#         self.endpoint = endpoint
+#         self.constraint = constraint
+
+#     def __get__(self, instance, cls):
+
+
+#     def __set__(self, instance, value):
+#         pass
 
 class FixedRelation(Expression):
     """
@@ -30,14 +51,17 @@ class FixedRelation(Expression):
         if reverse is None:
             reverse = self.reverse
         super(FixedRelation, self).__init__()
+
         if self.relation is None:
             raise ValueError("You *must* define the `relation` "
                              "class attribute to use this class.")
+
         self.nodes = copy(destination.nodes)
         self.head = destination.head
+
         self.decapitate(self.relation, reverse)
 
-
+@predicate(fixedtyperelation=u"rdf:type")   # FIXME: sparql specific
 class FixedType(Expression):
     """
     Expression for a fixed type.
@@ -45,16 +69,12 @@ class FixedType(Expression):
     """
 
     fixedtype = None
-    fixedtyperelation = u"rdf:type"  # FIXME: sparql specific
 
     def __init__(self):
         super(FixedType, self).__init__()
         if self.fixedtype is None:
             raise ValueError("You *must* define the `fixedtype` "
                              "class attribute to use this class.")
-        self.fixedtype = encoding_flexible_conversion(self.fixedtype)
-        self.fixedtyperelation = \
-            encoding_flexible_conversion(self.fixedtyperelation)
         self.add_data(self.fixedtyperelation, self.fixedtype)
 
 
@@ -72,20 +92,19 @@ class FixedDataRelation(Expression):
         if self.relation is None:
             raise ValueError("You *must* define the `relation` "
                              "class attribute to use this class.")
-        self.relation = encoding_flexible_conversion(self.relation)
+        #self.relation = Expression.relation
         if self.language is not None:
             self.language = encoding_flexible_conversion(self.language)
             data = u"\"{0}\"@{1}".format(data, self.language)
         self.add_data(self.relation, data)
 
 
+@predicate(relation=u"quepy:Keyword")
 class HasKeyword(FixedDataRelation):
     """
     Abstraction of an information retrieval key, something standarized used
     to look up things in the database.
     """
-    relation = u"quepy:Keyword"
-
     def __init__(self, data):
         data = self.sanitize(data)
         super(HasKeyword, self).__init__(data)
@@ -96,11 +115,10 @@ class HasKeyword(FixedDataRelation):
         return text
 
 
-class HasType(FixedRelation):
-    relation = "rdf:type"
+@predicate(relation="rdf:type")
+class HasType(FixedRelation): pass
 
-
-class IsRelatedTo(FixedRelation):
-    pass
+class IsRelatedTo(FixedRelation): pass
 # Looks weird, yes, here I am using `IsRelatedTo` as a unique identifier.
 IsRelatedTo.relation = IsRelatedTo
+

@@ -10,6 +10,7 @@
 """
 Movie related regex.
 """
+from __future__ import unicode_literals
 
 from refo import Plus, Question
 from quepy.dsl import HasKeyword
@@ -18,11 +19,10 @@ from dsl import IsMovie, NameOf, IsPerson, \
     DirectedBy, LabelOf, DurationOf, HasActor, HasName, ReleaseDateOf, \
     DirectorOf, StarsIn, DefinitionOf
 
-nouns = Plus(Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
-
+from .basic import nouns, be
 
 class Movie(Particle):
-    regex = Question(Pos("DT")) + nouns
+    regex = nouns
 
     def interpret(self, match):
         name = match.words.tokens

@@ -4,6 +4,11 @@
 Sparql generation code.
 """
 
+from collections import namedtuple
+from itertools import groupby
+#from operator import itemgetter
+import ctypes
+
 from quepy import settings
 from quepy.dsl import IsRelatedTo
 from quepy.expression import isnode
@@ -18,7 +23,7 @@ def escape(string):
     string = string.replace("\r", "")
     string = string.replace("\t", "")
     string = string.replace("\x0b", "")
-    if not string or any([x for x in string if 0 < ord(x) < 31]) or \
+    if not string or any(x for x in string if 0 < ord(x) < 31) or \
             string.startswith(":") or string.endswith(":"):
         message = "Unable to generate sparql: invalid nodes or relation"
         raise ValueError(message)
@@ -37,34 +42,62 @@ def adapt(x):
     return unicode(x)
 
 
+def expression_to_tuples(e):
+    y = 0
+    for node in e.iter_nodes():
+        for relation, dest in e.iter_edges(node):
+            if relation is IsRelatedTo:
+                relation = e.Predicate(u"?y{}".format(y),
+                                       e.endpoint, e.constraint)
+                y += 1
+            yield (adapt(node), relation, adapt(dest))
+
+
 def expression_to_sparql(e, full=False):
     template = u"{preamble}\n" +\
                u"SELECT DISTINCT {select} WHERE {{\n" +\
-               u"{expression}\n" +\
+               u"{where}\n" +\
                u"}}\n"
     head = adapt(e.get_head())
     if full:
         select = u"*"
     else:
         select = head
-    y = 0
+
+    indentation = 1
+    indent = _indent * indentation
     xs = []
-    for node in e.iter_nodes():
-        for relation, dest in e.iter_edges(node):
-            if relation is IsRelatedTo:
-                relation = u"?y{}".format(y)
-                y += 1
-            xs.append(triple(adapt(node), relation, adapt(dest),
-                      indentation=1))
+
+    for endpoint, triples in groupby(expression_to_tuples(e),
+                                    key=lambda t: t[1].endpoint):
+        if endpoint:
+            xs.append(u"SERVICE <{}> {{".format(endpoint))
+        xs.append(u"\n{}".format(indent).join(triple(*t,
+                                                     indentation=(indentation if endpoint else 0))
+                                                for t in triples))
+        if endpoint:
+            xs.append(u"}")
+
+
     sparql = template.format(preamble=settings.SPARQL_PREAMBLE,
                              select=select,
-                             expression=u"\n".join(xs))
+                             where=u"\n".join(indent+line for line in xs))
     return select, sparql
 
 
 def triple(a, p, b, indentation=0):
+    indent = _indent * indentation
     a = escape(a)
     b = escape(b)
-    p = escape(p)
-    s = _indent * indentation + u"{0} {1} {2}."
-    return s.format(a, p, b)
+
+    template = indent + u"{0} {1} {2}."
+    result = template.format(a, p.label, b)
+
+    if p.constraint:
+        result += u'\n' + indent + _indent + p.constraint.format(a)
+
+    return result
+
+
+def sparql_string(s, indentation=0):
+    return _indent * indentation + s

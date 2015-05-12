@@ -34,12 +34,12 @@ class WordList(list):
         self.extend(words)
 
     @property
-    def tokens(self):
-        return " ".join([x.token for x in self])
+    def tokens(self, sep=" "):
+        return " ".join(x.token for x in self)
 
     @property
     def lemmas(self):
-        return " ".join([x.lemma for x in self])
+        return " ".join(x.lemma for x in self)
 
 
 class Match(object):

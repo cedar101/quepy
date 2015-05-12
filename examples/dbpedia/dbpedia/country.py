@@ -10,30 +10,37 @@
 """
 Coutry related regex
 """
+from __future__ import unicode_literals
 
-from refo import Plus, Question
+from refo import Star, Plus, Question, Any
 from quepy.dsl import HasKeyword
-from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, Particle
+from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Token, Particle
 from dsl import IsCountry, IncumbentOf, CapitalOf, \
-    LabelOf, LanguageOf, PopulationOf, PresidentOf
+    LabelOf, LanguageOf, PopulationOf, PresidentOf, About, PrimaryTopicOf
+
+from .basic import nouns, be, combine
 
 
 class Country(Particle):
-    regex = Plus(Pos("DT") | Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
+    regex = nouns
 
     def interpret(self, match):
-        name = match.words.tokens.title()
-        return IsCountry() + HasKeyword(name)
+        name = combine(match.words.tokens.title())
+        country = HasKeyword(name) + IsCountry()
+        return country
+        # wikipedia = About(country)
+        # dbpedia = PrimaryTopicOf(wikipedia) + IsCountry()
+        # return dbpedia
 
 
 class PresidentOfQuestion(QuestionTemplate):
     """
     Regex for questions about the president of a country.
-    Ex: "Who is the president of Argentina?"
+    Ex: "아르헨티나의 대통령은 (누구지)?"
     """
 
-    regex = Pos("WP") + Token("is") + Question(Pos("DT")) + \
-        Lemma("president") + Pos("IN") + Country() + Question(Pos("."))
+    regex = (Country() + Question(Pos("JKG")) + Lemma("대통령") + Question(be) +
+             Question(Lemma("누구")) + Question(Pos("VCP")) + Question(Pos("SF")))
 
     def interpret(self, match):
         president = PresidentOf(match.country)
@@ -46,12 +53,11 @@ class PresidentOfQuestion(QuestionTemplate):
 class CapitalOfQuestion(QuestionTemplate):
     """
     Regex for questions about the capital of a country.
-    Ex: "What is the capital of Bolivia?"
+    Ex: "볼리비아의 수도는 (어디지)?"
     """
 
-    opening = Lemma("what") + Token("is")
-    regex = opening + Pos("DT") + Lemma("capital") + Pos("IN") + \
-        Question(Pos("DT")) + Country() + Question(Pos("."))
+    regex = (Country() + Question(Pos("JKG")) + Lemma("수도") + Question(be) +
+             Question(Lemma("어디")) + Question(Pos("VCP")) + Question(Pos("SF")))
 
     def interpret(self, match):
         capital = CapitalOf(match.country)
@@ -64,8 +70,8 @@ class CapitalOfQuestion(QuestionTemplate):
 class LanguageOfQuestion(QuestionTemplate):
     """
     Regex for questions about the language spoken in a country.
-    Ex: "What is the language of Argentina?"
-        "what language is spoken in Argentina?"
+    Ex: "아르헨티나의 (언어|공용어|공용언어)는 (뭐지?)
+        "아르헨티나는 (어떤|무슨) (말|언어|공용어|공용언어)를 (말하지|하지|쓰지)?
     """
 
     openings = (Lemma("what") + Token("is") + Pos("DT") +
@@ -73,8 +79,13 @@ class LanguageOfQuestion(QuestionTemplate):
                (Lemma("what") + Lemma("language") + Token("is") +
                 Lemma("speak"))
 
-    regex = openings + Pos("IN") + Question(Pos("DT")) + Country() + \
-        Question(Pos("."))
+    language = Lemma("언어") | Lemma("공용어") | Lemmas("공용 언어") | Lemma("말")
+    regex = (Country()
+             + ((Question(Pos("JKG")) + language + Question(be)
+                + Question(Lemma("뭣") | Lemma("무엇"))
+                + Question(Pos("VCP")) + Question(Pos("SF"))) |
+                (Question(be) + (Lemma("어떤") | Lemma("무슨"))
+                + language + Question(Pos("JKO")) + Star(Any()))))  # JKO: 목적격 조사
 
     def interpret(self, match):
         language = LanguageOf(match.country)
@@ -84,16 +95,19 @@ class LanguageOfQuestion(QuestionTemplate):
 class PopulationOfQuestion(QuestionTemplate):
     """
     Regex for questions about the population of a country.
-    Ex: "What is the population of China?"
-        "How many people live in China?"
+    Ex: "인도의 인구(수)는?
+        "인도는 얼마나 많은 사람이 살지?" "인도는 얼마나 많이 살지?"
     """
 
-    openings = (Pos("WP") + Token("is") + Pos("DT") +
-                Lemma("population") + Pos("IN")) | \
-               (Pos("WRB") + Lemma("many") + Lemma("people") +
-                Token("live") + Pos("IN"))
-    regex = openings + Question(Pos("DT")) + Country() + Question(Pos("."))
+    regex = (Country()
+             + ((Question(Pos("JKG"))
+                + (Lemma("인구") | Lemma("인구수")) + Question(Lemma("수"))
+                + Question(be)) |
+                (Question(be) + Lemma("얼마나")
+                 + (Lemmas("많 은 사람 이") | Lemma("많이")) + Lemma("살")
+                 + Question(Pos("VCP"))))
+             + Question(Pos("SF")))
 
     def interpret(self, match):
         population = PopulationOf(match.country)
-        return population, "literal"
+        return population, ("literal", lambda p: "{:,} 명".format(int(p)))

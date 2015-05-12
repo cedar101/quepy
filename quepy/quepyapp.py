@@ -101,7 +101,6 @@ class QuepyApp(object):
         The query returned corresponds to the first regex that matches in
         weight order.
         """
-
         question = question_sanitize(question)
         for target, query, userdata in self.get_queries(question):
             return target, query, userdata
@@ -135,13 +134,13 @@ class QuepyApp(object):
 
         try:
             words = list(self.tagger(question))
+
         except TaggingError:
             logger.warning(u"Can't parse tagger's output for: '%s'",
                            question)
             return
 
-        logger.debug(u"Tagged question:\n" +
-                     u"\n".join(u"\t{}".format(w for w in words)))
+        logger.debug(u"Tagged question:\n" + u"\n".join(unicode(w) for w in words))
 
         for rule in self.rules:
             expression, userdata = rule.get_interpretation(words)

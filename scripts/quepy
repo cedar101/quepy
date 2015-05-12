@@ -27,6 +27,10 @@ import subprocess
 from docopt import docopt
 from xml.sax.saxutils import escape
 
+from os.path import abspath, dirname, join
+
+sys.path.insert(0, join(abspath(dirname('__file__')), os.pardir))
+
 import quepy
 from quepy import generation
 from quepy.encodingpolicy import encoding_flexible_conversion

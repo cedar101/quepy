@@ -10,28 +10,34 @@
 """
 People related regex
 """
+from __future__ import unicode_literals
 
-from refo import Plus, Question
+from refo import Star, Plus, Question, Any
 from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
-from dsl import IsPerson, LabelOf, DefinitionOf, BirthDateOf, BirthPlaceOf
+from dsl import IsPerson, LabelOf, DefinitionOf, BirthDateOf, BirthPlaceOf, SameAs, About, PrimaryTopicOf
 
+from .basic import nouns, be
 
 class Person(Particle):
-    regex = Plus(Pos("NN") | Pos("NNS") | Pos("NNP") | Pos("NNPS"))
+    regex = nouns
 
     def interpret(self, match):
         name = match.words.tokens
-        return IsPerson() + HasKeyword(name)
+        person = HasKeyword(name)
+        return person
+        # wikipedia = About(person)
+        # dbpedia = PrimaryTopicOf(wikipedia) + IsPerson()
+        # return dbpedia
 
 
 class WhoIs(QuestionTemplate):
     """
-    Ex: "Who is Tom Cruise?"
+    Regex for questions like "원빈이 누구지?"
     """
+    regex = (Person() + be +
+             Lemma("누구") + Question(Pos("VCP")) + Question(Pos("SF")))
 
-    regex = Lemma("who") + Lemma("be") + Person() + \
-        Question(Pos("."))
 
     def interpret(self, match):
         definition = DefinitionOf(match.person)
@@ -40,11 +46,13 @@ class WhoIs(QuestionTemplate):
 
 class HowOldIsQuestion(QuestionTemplate):
     """
-    Ex: "How old is Bob Dylan".
+    Ex:  "원빈은 몇 살이지?", "원빈의 나이는?"
     """
 
-    regex = Pos("WRB") + Lemma("old") + Lemma("be") + Person() + \
-        Question(Pos("."))
+    regex = (Person()   # EF: 종결 어미, JKG: 관형격 조사
+            + ((Question(be) + Lemmas("몇 살") + Question(Pos("VCP")) + Question(Pos("EF"))) |
+               (Question(Pos("JKG")) + Lemma("나이") + Question(be)))
+            + Question(Pos("SF")))
 
     def interpret(self, match):
         birth_date = BirthDateOf(match.person)
@@ -53,11 +61,13 @@ class HowOldIsQuestion(QuestionTemplate):
 
 class WhereIsFromQuestion(QuestionTemplate):
     """
-    Ex: "Where is Bill Gates from?"
+    Ex: "원빈의 출신지는 (어디야)?", "원빈은 어디 출신이야?"
     """
 
-    regex = Lemmas("where be") + Person() + Lemma("from") + \
-        Question(Pos("."))
+    regex = (Person()
+             + ((Question(Pos("JKG")) + Lemma("출신")) |
+                (Question(be) + Lemmas("어디 출신")))
+             + Star(Any()))
 
     def interpret(self, match):
         birth_place = BirthPlaceOf(match.person)

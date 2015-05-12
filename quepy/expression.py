@@ -87,16 +87,17 @@ The reasons are:
       (I do)).
 """
 
-
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from copy import deepcopy
 
+from quepy import settings
 
 def isnode(x):
     return isinstance(x, int)
 
-
 class Expression(object):
+    endpoint = None
+    constraint = None
 
     def __init__(self):
         """
@@ -127,14 +128,30 @@ class Expression(object):
         The ``head`` nodes are merged into a single node that is the new
         ``head`` and shares all the edges of the previous heads.
         """
+        # def translate(nodes, translation, dest):
+        #     if isnode(dest):
+        #         dest = translation[dest]
+        #     return (self.nodes[translation[node]], dest)
+
         translation = defaultdict(self._add_node)
         translation[other.head] = self.head
+
         for node in other.iter_nodes():
             for relation, dest in other.iter_edges(node):
                 xs = self.nodes[translation[node]]
                 if isnode(dest):
                     dest = translation[dest]
                 xs.append((relation, dest))
+
+        # for node in other.iter_nodes():
+        #     if self.endpoint is None:
+        #         for relation, dest in other.iter_edges(node):
+        #             xs, dest = translate(self.nodes, translation, dest)
+        #             xs.append((relation, dest))
+        #     else:
+        #         for relation, dest, endpoint in other.iter_edges(node):
+        #             xs, dest = translate(self.nodes, translation, dest)
+        #             xs.append((relation, dest, endpoint))
 
     def decapitate(self, relation, reverse=False):
         """
@@ -150,8 +167,12 @@ class Expression(object):
         self.head = self._add_node()
         if reverse:
             self.nodes[oldhead].append((relation, self.head))
+                                       #      if self.endpoint is None else
+                                       # (relation, self.head, endpoint))
         else:
             self.nodes[self.head].append((relation, oldhead))
+                                         #    if self.endpoint is None else
+                                         # (relation, oldhead, endpoint))
 
     def add_data(self, relation, value):
         """
@@ -169,6 +190,8 @@ class Expression(object):
         """
         assert not isnode(value)
         self.nodes[self.head].append((relation, value))
+                                     #    if self.endpoint is None else
+                                     # (relation, value, endpoint))
 
     def iter_nodes(self):
         """

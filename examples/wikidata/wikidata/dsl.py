@@ -10,20 +10,22 @@
 """
 Domain specific language for DBpedia quepy.
 """
+from __future__ import unicode_literals
 
+from quepy.expression import Expression
 from quepy.dsl import FixedType, HasKeyword, FixedRelation, FixedDataRelation
 
 # Setup the Keywords for this application
 HasKeyword.relation = "rdfs:label"
-HasKeyword.language = "en"
+HasKeyword.language = "ko"
 
 
 class IsPerson(FixedType):
-    fixedtype = "foaf:Person"
+    fixedtype = "wd:Q5"     # human
 
 
-class IsPlace(FixedType):
-    fixedtype = "dbpedia:Place"
+# class IsPlace(FixedType):
+#     fixedtype = "wd:P625"   # coordinate location
 
 
 class IsCountry(FixedType):
@@ -48,16 +50,16 @@ class IsMovie(FixedType):
 
 class HasShowName(FixedDataRelation):
     relation = "dbpprop:showName"
-    language = "en"
+    language = "ko"
 
 
 class HasName(FixedDataRelation):
     relation = "dbpprop:name"
-    language = "en"
+    language = "ko"
 
 
 class DefinitionOf(FixedRelation):
-    relation = "rdfs:comment"
+    relation = "schema:description"
     reverse = True
 
 
@@ -67,7 +69,7 @@ class LabelOf(FixedRelation):
 
 
 class UTCof(FixedRelation):
-    relation = "dbpprop:utcOffset"
+    relation = "wd:P421"
     reverse = True
 
 
@@ -191,5 +193,13 @@ class IsBook(FixedType):
 
 
 class LocationOf(FixedRelation):
-    relation = "dbpedia-owl:location"
+    relation = "wd:P625s"   # "dbpedia-owl:location"
     reverse = True
+
+
+class SameAs(FixedRelation):
+    """docstring for SameAs"""
+    relation = "owl:sameAs"
+    reverse = True
+
+

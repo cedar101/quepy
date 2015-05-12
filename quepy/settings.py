@@ -17,6 +17,9 @@ LANGUAGE = "sparql"
 # NLTK config
 NLTK_DATA_PATH = []  # List of paths with NLTK data
 
+# MeCab config
+MECAB_DATA_PATH =[]
+
 # Encoding config
 DEFAULT_ENCODING = "utf-8"
 
@@ -29,3 +32,4 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX quepy: <http://www.machinalis.com/quepy#>
 """
+

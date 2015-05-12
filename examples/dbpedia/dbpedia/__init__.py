@@ -10,6 +10,14 @@
 """
 DBpedia quepy.
 """
+# from refo import Group, Plus, Question
+# from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, Particle, \
+#                           Lemmas, Tokens
+
+# # NNG: 일반 명사, NNP: 고유 명사, SL: 외국어
+# noun = Pos("NNG") | Pos("NNP") | Pos("SL")
+# nouns = Plus(noun)
+# be = (Pos("JKS") | Pos("JX"))
 
 from basic import *
 from music import *

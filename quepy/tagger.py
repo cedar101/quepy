@@ -7,16 +7,18 @@
 # Authors: Rafael Carrascosa <rcarrascosa@machinalis.com>
 #          Gonzalo Garcia Berrotaran <ggarcia@machinalis.com>
 
+from __future__ import unicode_literals
+
 import logging
 
 from quepy import settings
 from quepy.encodingpolicy import assert_valid_encoding
 
 logger = logging.getLogger("quepy.tagger")
-PENN_TAGSET = set(u"$ `` '' ( ) , -- . : CC CD DT EX FW IN JJ JJR JJS LS MD "
-                  "NN NNP NNPS NNS PDT POS PRP PRP$ RB RBR RBS RP SYM TO UH "
-                  "VB VBD VBG VBN VBP VBZ WDT WP WP$ WRB".split())
 
+# PENN_TAGSET = set("$ `` '' ( ) , -- . : CC CD DT EX FW IN JJ JJR JJS LS MD "
+#                   "NN NNP NNPS NNS PDT POS PRP PRP$ RB RBR RBS RP SYM TO UH "
+#                   "VB VBD VBG VBN VBP VBZ WDT WP WP$ WRB".split())
 
 class TaggingError(Exception):
     """
@@ -60,15 +62,16 @@ def get_tagger():
     The returned value is a function that receives a unicode string and returns
     a list of `Word` instances.
     """
-    from quepy.nltktagger import run_nltktagger
-    tagger_function = lambda x: run_nltktagger(x, settings.NLTK_DATA_PATH)
+    from mecab import MecabTagger
+    Tagger = MecabTagger
 
     def wrapper(string):
         assert_valid_encoding(string)
-        words = tagger_function(string)
-        for word in words:
-            if word.pos not in PENN_TAGSET:
-                logger.warning("Tagger emmited a non-penn "
-                               "POS tag {!r}".format(word.pos))
+        with Tagger() as tagger:
+            words = tagger.parse(string)
+        # for word in words:
+        #     if word.pos not in Tagger.TAGSET:
+        #         logger.warning("Tagger emmited a non-mecab "
+        #                        "POS tag {!r}".format(word.pos))
         return words
     return wrapper
