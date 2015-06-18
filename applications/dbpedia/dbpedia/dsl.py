@@ -13,8 +13,6 @@ Domain specific language for DBpedia quepy.
 from __future__ import unicode_literals
 
 from quepy.expression import Expression
-from quepy.dsl import (FixedType, HasKeyword, FixedRelation, FixedDataRelation,
-                       predicate)
 
 ENDPOINTS = {
     'en': 'http://dbpedia.org/sparql',
@@ -24,11 +22,27 @@ ENDPOINTS = {
 
 Expression.endpoint = ENDPOINTS['en']
 
+import quepy.dsl
+reload(quepy.dsl)
+from quepy.dsl import FixedType, FixedRelation, FixedDataRelation, predicate
+
 # Setup the Keywords for this application
-HasKeyword.language = "ko"
-HasKeyword.endpoint = ENDPOINTS['ko']
-HasKeyword.constraint = 'FILTER(STRSTARTS(STR({}), "http://dbpedia.org"))'
-HasKeyword = predicate(relation="rdfs:label")(HasKeyword)
+# HasKeyword.language = "ko"
+# HasKeyword.endpoint = ENDPOINTS['ko']
+# HasKeyword.constraint = 'FILTER(STRSTARTS(STR({}), "http://dbpedia.org"))'
+# HasKeyword.sanitize = staticmethod(lambda s: s.replace(' ', ''))
+# HasKeyword = predicate(relation="rdfs:label")(HasKeyword)
+
+@predicate(relation=u"rdfs:label")
+class HasKeyword(quepy.dsl.HasKeyword):
+    language = "ko"
+    endpoint = ENDPOINTS['ko']
+    constraint = 'FILTER(STRSTARTS(STR({}), "http://dbpedia.org"))'
+
+    @staticmethod
+    def sanitize(text):
+        return text.replace(' ', '')
+
 
 class IsPerson(FixedType):
     fixedtype = "foaf:Person"

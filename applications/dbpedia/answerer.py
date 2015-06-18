@@ -33,15 +33,16 @@ dbpedia = quepy.install("dbpedia")
 
 #sparql = SPARQLWrapper("http://54.64.13.23:3030/dbpedia/sparql")
 #sparql = SPARQLWrapper("http://175.123.88.38:3030/dbpedia/sparql")
-sparql = SPARQLWrapper("http://127.0.0.1:3030/dbpedia-ko/query")
+#sparql = SPARQLWrapper("http://127.0.0.1:3030/dbpedia-ko/query")
+sparql = SPARQLWrapper("http://aflxscketcdev1:3030/dbpedia-ko/query")
 
-def print_define(results, target, metadata=None):
+
+def process_define(results, target, metadata=None):
     for result in results["results"]["bindings"]:
         if result[target]["xml:lang"] == "en":
-            print result[target]["value"]
-            print
+            return result[target]["value"]
 
-def print_enum(results, target, metadata=None):
+def process_enum(results, target, metadata=None):
     used_labels = []
 
     for result in results["results"]["bindings"]:
@@ -50,30 +51,30 @@ def print_enum(results, target, metadata=None):
                 label = result[target]["value"]
                 if label not in used_labels:
                     used_labels.append(label)
-                    print label
+                    return label
 
-def print_literal(results, target, metadata=None):
+def process_literal(results, target, metadata=None):
     for result in results["results"]["bindings"]:
         literal = result[target]["value"]
         if metadata is None:
-            print literal
-        else:
-            if isinstance(metadata, basestring):
-                print metadata.format(literal)
-            elif isinstance(metadata, FunctionType):
-                print metadata(literal)
+            return literal
 
-def print_location(results, target, metadata=None):
+        if isinstance(metadata, basestring):
+            return metadata.format(literal)
+        elif isinstance(metadata, FunctionType):
+            return metadata(literal)
+
+def process_location(results, target, metadata=None):
     zoom = 12
     for result in results["results"]["bindings"]:
         latitude, longitude = result[target]["value"].split()
-        url = join("https://www.google.co.uk/maps/place",
+        url = join("https://www.google.co.kr/maps/place",
                    "{latitude}+{longitude}",
                    "@{latitude},{longitude},{zoom}z").format(**locals())
-        print 'open ' + url
-        os.system('open ' + url)
+        return 'open ' + url
+        #os.system('open ' + url)
 
-def print_time(results, target, metadata=None):
+def process_time(results, target, metadata=None):
     gmt = time.mktime(time.gmtime())
     gmt = datetime.datetime.fromtimestamp(gmt)
 
@@ -102,7 +103,7 @@ def print_time(results, target, metadata=None):
             location_string = random.choice(["where you are",
                                              "your location"])
 
-            print "Between %s %s %s, depending on %s" % \
+            return "Between %s %s %s, depending on %s" % \
                   (from_time.strftime("%H:%M"),
                    connector,
                    to_time.strftime("%H:%M on %A"),
@@ -114,10 +115,9 @@ def print_time(results, target, metadata=None):
             delta = datetime.timedelta(hours=offset)
             the_time = gmt + delta
 
-            print the_time.strftime("%H:%M on %A")
+            return the_time.strftime("%H:%M") # on %A")
 
-
-def print_age(results, target, metadata=None):
+def process_age(results, target, metadata=None):
     assert len(results["results"]["bindings"]) == 1
 
     birth_date = results["results"]["bindings"][0][target]["value"]
@@ -129,15 +129,15 @@ def print_age(results, target, metadata=None):
     now = now.date()
 
     age = now - birth_date
-    print "만 {}세".format(age.days / 365)
+    return "만 {}세".format(age.days / 365)
 
-print_handlers = {
-    "define": print_define,
-    "enum": print_enum,
-    "time": print_time,
-    "literal": print_literal,
-    "age": print_age,
-    "location": print_location
+process_handlers = {
+    "define": process_define,
+    "enum": process_enum,
+    "time": process_time,
+    "literal": process_literal,
+    "age": process_age,
+    "location": process_location
 }
 
 def wikipedia2dbpedia(wikipedia_url):
@@ -163,8 +163,45 @@ def wikipedia2dbpedia(wikipedia_url):
     else:
         return results["results"]["bindings"][0]["url"]["value"]
 
+def get_query(question):
+    # print question
+    # print "-" * len(question)
 
-if __name__ == "__main__":
+    target, query, metadata, rule_used = dbpedia.get_query(question)
+
+    if isinstance(metadata, tuple):
+        query_type = metadata[0]
+        metadata = metadata[1]
+    else:
+        query_type = metadata
+        metadata = None
+
+    #print '\n', query_type, metadata
+
+    if query is None:
+        return "Query not generated :(\n"
+
+    #print query
+
+    if target.startswith("?"):
+        target = target[1:]
+
+    return query, target, query_type, metadata, rule_used
+
+
+def query_sparql(query, target, query_type, metadata):
+    if query:
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
+        print "Please wait...\n"
+        results = sparql.query().convert()
+        #import pdb; pdb.set_trace()
+        if not results["results"]["bindings"]:
+            return "No answer found :("
+
+    return process_handlers[query_type](results, target, metadata) #, query
+
+def main():
     default_questions = [
         "아프리카TV가 뭐야?",
         "원빈이 누구야?",
@@ -209,38 +246,7 @@ if __name__ == "__main__":
         questions = default_questions
 
     for question in questions:
-        print question
-        print "-" * len(question)
+        print query_sparql(*get_query(question)) #[0]
 
-        target, query, metadata = dbpedia.get_query(question)
-
-        if isinstance(metadata, tuple):
-            query_type = metadata[0]
-            metadata = metadata[1]
-        else:
-            query_type = metadata
-            metadata = None
-
-        #print '\n', query_type, metadata
-
-        if query is None:
-            print "Query not generated :(\n"
-            continue
-
-        #print query
-
-        if target.startswith("?"):
-            target = target[1:]
-        if query:
-            sparql.setQuery(query)
-            sparql.setReturnFormat(JSON)
-            print "Please wait...\n"
-            results = sparql.query().convert()
-            #import pdb; pdb.set_trace()
-            if not results["results"]["bindings"]:
-                print "No answer found :("
-                continue
-
-        print "Result:"
-        print_handlers[query_type](results, target, metadata)
-        print
+if __name__ == "__main__":
+    main()

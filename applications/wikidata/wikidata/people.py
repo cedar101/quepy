@@ -13,9 +13,9 @@ People related regex
 from __future__ import unicode_literals
 
 from refo import Star, Plus, Question, Any
-from quepy.dsl import HasKeyword
+from quepy.dsl import HasKeyword, HasType
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
-from dsl import IsPerson, LabelOf, DefinitionOf, BirthDateOf, BirthPlaceOf, SameAs, About, PrimaryTopicOf
+from dsl import IsPerson, LabelOf, DefinitionOf, BirthDateOf, BirthPlaceOf, SameAs
 
 from .basic import nouns, be
 
@@ -24,11 +24,7 @@ class Person(Particle):
 
     def interpret(self, match):
         name = match.words.tokens
-        person = HasKeyword(name)
-        return person
-        # wikipedia = About(person)
-        # dbpedia = PrimaryTopicOf(wikipedia) + IsPerson()
-        # return dbpedia
+        return IsPerson() + HasKeyword(name)
 
 
 class WhoIs(QuestionTemplate):
@@ -55,19 +51,17 @@ class HowOldIsQuestion(QuestionTemplate):
             + Question(Pos("SF")))
 
     def interpret(self, match):
-        birth_date = BirthDateOf(match.person)
+        same = SameAs(match.person)
+        birth_date = BirthDateOf(same)
         return birth_date, "age"
 
 
 class WhereIsFromQuestion(QuestionTemplate):
     """
-    Ex: "원빈의 출신지는 (어디야)?", "원빈은 어디 출신이야?"
+    Ex: "원빈의 출신지는 (어디야)?"
     """
 
-    regex = (Person()
-             + ((Question(Pos("JKG")) + Lemma("출신")) |
-                (Question(be) + Lemmas("어디 출신")))
-             + Star(Any()))
+    regex = Person() + Question(Pos("JKG")) + Lemma("출신") + Star(Any())
 
     def interpret(self, match):
         birth_place = BirthPlaceOf(match.person)

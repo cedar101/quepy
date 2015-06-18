@@ -17,10 +17,9 @@ from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
 from dsl import IsBand, LabelOf, IsMemberOf, ActiveYears, MusicGenreOf, \
     NameOf, IsAlbum, ProducedBy
 
-from .basic import nouns, be
 
 class Band(Particle):
-    regex = nouns
+    regex = Question(Pos("DT")) + Plus(Pos("NN") | Pos("NNP"))
 
     def interpret(self, match):
         name = match.words.tokens.title()

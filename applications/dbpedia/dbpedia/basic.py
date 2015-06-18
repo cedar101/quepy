@@ -15,10 +15,10 @@ from __future__ import unicode_literals
 from refo import Group, Plus, Question
 from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, Particle, \
                           Lemmas, Tokens
-from quepy.dsl import HasKeyword, IsRelatedTo, HasType
-from dsl import DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, About, PrimaryTopicOf
+from quepy.dsl import IsRelatedTo, HasType
+from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, About, PrimaryTopicOf
 
-combine = lambda s: s.replace(' ', '')
+#combine = lambda s: s.replace(' ', '')
 
 # NNG: 일반 명사, NNP: 고유 명사, SL: 외국어
 noun = Pos("NNG") | Pos("NNP") | Pos("SL")
@@ -29,7 +29,7 @@ class Thing(Particle):
     regex = nouns
 
     def interpret(self, match):
-        keyword = HasKeyword(combine(match.words.tokens))
+        keyword = HasKeyword(match.words.tokens)
         return keyword
         # wikipedia = About(keyword)
         # dbpedia = PrimaryTopicOf(wikipedia)
@@ -58,7 +58,7 @@ class Target(Particle):
     regex = Pos("NNG")
 
     def interpret(self, match):
-        keyword = HasKeyword(combine(match.words.tokens))
+        keyword = HasKeyword(match.words.tokens)
         return keyword
 
 
@@ -88,7 +88,7 @@ class Place(Particle):
     regex = nouns
 
     def interpret(self, match):
-        place = HasKeyword(combine(match.words.tokens))
+        place = HasKeyword(match.words.tokens)
         return place
         # wikipedia = About(place)
         # dbpedia = PrimaryTopicOf(wikipedia) + IsPlace()
@@ -97,7 +97,7 @@ class Place(Particle):
 class WhatTimeIs(QuestionTemplate):
     """
     Regex for questions about the time
-    Ex: "(지금) 베네치아는 (지금) 몇 시지?", "베네치아의 (현재|지금) 시간은?"
+    Ex: "(지금) 뉴욕은 (지금) 몇 시지?", "뉴욕의 (현재|지금) 시간은?"
     """
 
     regex1 = (Question(Token("지금")) + Place() + Question(be) +

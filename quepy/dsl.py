@@ -88,6 +88,7 @@ class FixedDataRelation(Expression):
     language = None
 
     def __init__(self, data):
+        #super(self.__class__, self).__init__()
         super(FixedDataRelation, self).__init__()
         if self.relation is None:
             raise ValueError("You *must* define the `relation` "
@@ -99,7 +100,7 @@ class FixedDataRelation(Expression):
         self.add_data(self.relation, data)
 
 
-@predicate(relation=u"quepy:Keyword")
+#@predicate(relation=u"rdfs:label") # u"quepy:Keyword")
 class HasKeyword(FixedDataRelation):
     """
     Abstraction of an information retrieval key, something standarized used
@@ -107,7 +108,9 @@ class HasKeyword(FixedDataRelation):
     """
     def __init__(self, data):
         data = self.sanitize(data)
+        #super(self.__class__, self).__init__(data)
         super(HasKeyword, self).__init__(data)
+        #FixedDataRelation.__init__(self, data)
 
     @staticmethod
     def sanitize(text):

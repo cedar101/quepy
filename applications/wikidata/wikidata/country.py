@@ -16,21 +16,27 @@ from refo import Star, Plus, Question, Any
 from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Token, Particle
 from dsl import IsCountry, IncumbentOf, CapitalOf, \
-    LabelOf, LanguageOf, PopulationOf, PresidentOf, About, PrimaryTopicOf
+    LabelOf, LanguageOf, PopulationOf, PresidentOf, SameAs
 
-from .basic import nouns, be, combine
+from .basic import nouns, be
+
+# class Country(Particle):
+#     regex = nouns
+
+#     def interpret(self, match):
+#         name = match.words.tokens.title()
+#         country = HasKeyword(name)
+#         return country
 
 
 class Country(Particle):
     regex = nouns
 
     def interpret(self, match):
-        name = combine(match.words.tokens.title())
-        country = HasKeyword(name) + IsCountry()
-        return country
-        # wikipedia = About(country)
-        # dbpedia = PrimaryTopicOf(wikipedia) + IsCountry()
-        # return dbpedia
+        name = match.words.tokens.title()
+        country = HasKeyword(name)
+        same = SameAs(country) + IsCountry()
+        return same
 
 
 class PresidentOfQuestion(QuestionTemplate):
@@ -45,7 +51,7 @@ class PresidentOfQuestion(QuestionTemplate):
     def interpret(self, match):
         president = PresidentOf(match.country)
         incumbent = IncumbentOf(president)
-        label = LabelOf(incumbent)
+        label = EnLabelOf(incumbent)
 
         return label, "enum"
 
@@ -61,7 +67,7 @@ class CapitalOfQuestion(QuestionTemplate):
 
     def interpret(self, match):
         capital = CapitalOf(match.country)
-        label = LabelOf(capital)
+        label = EnLabelOf(capital)
         return label, "enum"
 
 
@@ -95,8 +101,8 @@ class LanguageOfQuestion(QuestionTemplate):
 class PopulationOfQuestion(QuestionTemplate):
     """
     Regex for questions about the population of a country.
-    Ex: "인도의 인구(수)는?
-        "인도는 얼마나 많은 사람이 살지?" "인도는 얼마나 많이 살지?"
+    Ex: "중국의 인구(수)는?
+        "중국은 얼마나 많은 사람이 살지?" "중국은 얼마나 많이 살지?"
     """
 
     regex = (Country()
@@ -110,4 +116,4 @@ class PopulationOfQuestion(QuestionTemplate):
 
     def interpret(self, match):
         population = PopulationOf(match.country)
-        return population, ("literal", lambda p: "{:,} 명".format(int(p)))
+        return population, "literal"

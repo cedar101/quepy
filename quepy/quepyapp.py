@@ -102,9 +102,9 @@ class QuepyApp(object):
         weight order.
         """
         question = question_sanitize(question)
-        for target, query, userdata in self.get_queries(question):
-            return target, query, userdata
-        return None, None, None
+        for target, query, userdata, rule_used in self.get_queries(question):
+            return target, query, userdata, rule_used
+        return None, None, None, None
 
     def get_queries(self, question):
         """
@@ -121,11 +121,11 @@ class QuepyApp(object):
         question = encoding_flexible_conversion(question)
         for expression, userdata in self._iter_compiled_forms(question):
             target, query = generation.get_code(expression, self.language)
+            rule_used = expression.rule_used
             message = u"Interpretation {1}: {0}"
-            logger.debug(message.format(str(expression),
-                         expression.rule_used))
+            logger.debug(message.format(str(expression), rule_used))
             logger.debug(u"Query generated: {0}".format(query))
-            yield target, query, userdata
+            yield target, query, userdata, rule_used
 
     def _iter_compiled_forms(self, question):
         """
