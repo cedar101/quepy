@@ -7,6 +7,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 from functools import wraps
+from copy import deepcopy
 
 from flask import request, url_for
 from flask.ext.api import FlaskAPI, status, exceptions
@@ -70,7 +71,7 @@ def process_question():
 
     query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
 
-    result = dict(result_struct)
+    result = deepcopy(result_struct)
 
     result_data = result["data"]
     result_data["intention"] = rule_used
@@ -99,7 +100,7 @@ def sparql_job(request, answerer, middleware_url):
     query = param['query_string']
     target = param['match']
     query_type = param['result_type']
-    metadata = param['metadata']
+    metadata = param.get('metadata')
 
     answer_string = answerer.query_sparql(query, target, query_type, metadata)
 
@@ -123,7 +124,7 @@ def process_sparql():
     query = param['query_string']
     target = param['match']
     query_type = param['result_type']
-    metadata = param['metadata']
+    metadata = param.get('metadata')
 
     answer_string = answerer.query_sparql(query, target, query_type, metadata)
 
@@ -146,7 +147,7 @@ def answer_job(request, answerer, middleware_url, result_struct):
 
     query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
 
-    result = dict(result_struct)
+    result = deepcopy(result_struct)
 
     result_data = result["data"]
     result_data["intention"] = rule_used
@@ -179,7 +180,7 @@ def process_answer():
 
     query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
 
-    result = dict(result_struct)
+    result = deepcopy(result_struct)
 
     result_data = result["data"]
     result_data["intention"] = rule_used
