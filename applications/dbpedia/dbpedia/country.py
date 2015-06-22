@@ -16,7 +16,7 @@ from refo import Star, Plus, Question, Any
 #from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Token, Particle
 from dsl import HasKeyword, IsCountry, IncumbentOf, CapitalOf, \
-    LabelOf, LanguageOf, PopulationOf, PresidentOf, PrimaryTopicOf
+    LabelOf, LanguageOf, PopulationOf, PresidentOf, PrimaryTopicOf, SameAs
 
 from .basic import nouns, be
 
@@ -25,11 +25,9 @@ class Country(Particle):
 
     def interpret(self, match):
         name = match.words.tokens.title()
-        country = HasKeyword(name) + IsCountry()
-        return country
-        # wikipedia = About(country)
-        # dbpedia = PrimaryTopicOf(wikipedia) + IsCountry()
-        # return dbpedia
+        country_ko = HasKeyword(name)
+        country_en = SameAs(country_ko) + IsCountry()
+        return country_en
 
 
 class PresidentOfQuestion(QuestionTemplate):

@@ -180,7 +180,7 @@ def get_query(question):
     #print '\n', query_type, metadata
 
     if query is None:
-        return "Query not generated :(\n"
+        return "Query not generated\n", None, None, None, None
 
     #print query
 
@@ -198,7 +198,7 @@ def query_sparql(query, target, query_type, metadata):
         results = sparql.query().convert()
         #import pdb; pdb.set_trace()
         if not results["results"]["bindings"]:
-            return "No answer found :("
+            return "No answer found"
 
     return process_handlers[query_type](results, target, metadata) #, query
 

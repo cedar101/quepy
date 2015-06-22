@@ -85,7 +85,8 @@ class DefinitionOf(FixedRelation):
 class LabelOf(FixedRelation):
     reverse = True
 
-@relation("dbpprop:utcOffset")
+#@relation("dbpprop:utcOffset")
+@relation("dbpedia-owl:utcOffset")
 class UTCof(FixedRelation):
     reverse = True
 

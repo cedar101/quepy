@@ -35,7 +35,7 @@ class WhoIs(QuestionTemplate):
     """
     Regex for questions like "원빈이 누구지?"
     """
-    regex = (Person() + be +
+    regex = (Person() + Question(be) +
              Lemma("누구") + Question(Pos("VCP")) + Question(Pos("SF")))
 
 

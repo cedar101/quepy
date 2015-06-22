@@ -31,9 +31,6 @@ class Thing(Particle):
     def interpret(self, match):
         keyword = HasKeyword(match.words.tokens)
         return keyword
-        # wikipedia = About(keyword)
-        # dbpedia = PrimaryTopicOf(wikipedia)
-        # return dbpedia
 
 
 class WhatIs(QuestionTemplate):
@@ -89,7 +86,7 @@ class Place(Particle):
 
     def interpret(self, match):
         place_ko = HasKeyword(match.words.tokens)
-        place_en = SameAs(place_ko)
+        place_en = SameAs(place_ko) + IsPlace()
         return place_en
 
 
@@ -117,7 +114,7 @@ class WhereIsQuestion(QuestionTemplate):
     Ex: "분당구는 어디지?", "분당구의 위치는?"
     """
 
-    regex = (Place() + ((be + Lemma("어디") + Question(Pos("VCP"))) |
+    regex = (Place() + ((Question(be) + Lemma("어디") + Question(Pos("VCP"))) |
                       (Question(Pos("JKG")) + Lemma("위치") + Question(be)))
              + Question(Pos("SF")))
 
