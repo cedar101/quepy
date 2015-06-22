@@ -16,7 +16,7 @@ from refo import Star, Plus, Question, Any
 #from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Token, Particle
 from dsl import HasKeyword, IsCountry, IncumbentOf, CapitalOf, \
-    LabelOf, LanguageOf, PopulationOf, PresidentOf, About, PrimaryTopicOf
+    LabelOf, LanguageOf, PopulationOf, PresidentOf, PrimaryTopicOf
 
 from .basic import nouns, be
 

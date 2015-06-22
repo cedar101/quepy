@@ -17,26 +17,12 @@ from copy import copy
 from quepy.expression import Expression
 from quepy.encodingpolicy import encoding_flexible_conversion
 
-def predicate(**kwargs):
+def relation(iri):
     def decorate(cls):
-        cls.Predicate = namedtuple('Predicate', 'label endpoint constraint')
-        for key, value in kwargs.iteritems():
-            setattr(cls, key, cls.Predicate(value, cls.endpoint, cls.constraint))
+        cls.Relation = namedtuple('Relation', 'iri dataset constraint')
+        cls.relation = cls.Relation(iri, cls.dataset, cls.constraint)
         return cls
     return decorate
-
-# class Predicate:
-#     """docstring for Predicate"""
-#     def __init__(self, label, endpoint=None, constraint=None):
-#         self.label = label
-#         self.endpoint = endpoint
-#         self.constraint = constraint
-
-#     def __get__(self, instance, cls):
-
-
-#     def __set__(self, instance, value):
-#         pass
 
 class FixedRelation(Expression):
     """
@@ -61,7 +47,8 @@ class FixedRelation(Expression):
 
         self.decapitate(self.relation, reverse)
 
-@predicate(fixedtyperelation=u"rdf:type")   # FIXME: sparql specific
+
+@relation(u"rdf:type")   # FIXME: sparql specific
 class FixedType(Expression):
     """
     Expression for a fixed type.
@@ -75,7 +62,7 @@ class FixedType(Expression):
         if self.fixedtype is None:
             raise ValueError("You *must* define the `fixedtype` "
                              "class attribute to use this class.")
-        self.add_data(self.fixedtyperelation, self.fixedtype)
+        self.add_data(self.relation, self.fixedtype)
 
 
 class FixedDataRelation(Expression):
@@ -100,7 +87,7 @@ class FixedDataRelation(Expression):
         self.add_data(self.relation, data)
 
 
-#@predicate(relation=u"rdfs:label") # u"quepy:Keyword")
+@relation(u"quepy:Keyword")
 class HasKeyword(FixedDataRelation):
     """
     Abstraction of an information retrieval key, something standarized used
@@ -118,7 +105,7 @@ class HasKeyword(FixedDataRelation):
         return text
 
 
-@predicate(relation="rdf:type")
+@relation("rdf:type")
 class HasType(FixedRelation): pass
 
 class IsRelatedTo(FixedRelation): pass

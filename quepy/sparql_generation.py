@@ -6,8 +6,6 @@ Sparql generation code.
 
 from collections import namedtuple
 from itertools import groupby
-#from operator import itemgetter
-import ctypes
 
 from quepy import settings
 from quepy.dsl import IsRelatedTo
@@ -48,7 +46,7 @@ def expression_to_tuples(e):
         for relation, dest in e.iter_edges(node):
             if relation is IsRelatedTo:
                 relation = e.Predicate(u"?y{}".format(y),
-                                       e.endpoint, e.constraint)
+                                       e.dataset, e.constraint)
                 y += 1
             yield (adapt(node), relation, adapt(dest))
 
@@ -68,14 +66,14 @@ def expression_to_sparql(e, full=False):
     indent = _indent * indentation
     xs = []
 
-    for endpoint, triples in groupby(expression_to_tuples(e),
-                                    key=lambda t: t[1].endpoint):
-        if endpoint:
-            xs.append(u"SERVICE <{}> {{".format(endpoint))
+    for dataset, triples in groupby(expression_to_tuples(e),
+                                    key=lambda t: t[1].dataset):
+        if dataset:
+            xs.append(dataset + " {")
         xs.append(u"\n{}".format(indent).join(triple(*t,
-                                                     indentation=(indentation if endpoint else 0))
+                                                     indentation=(indentation if dataset else 0))
                                                 for t in triples))
-        if endpoint:
+        if dataset:
             xs.append(u"}")
 
 
@@ -91,7 +89,7 @@ def triple(a, p, b, indentation=0):
     b = escape(b)
 
     template = indent + u"{0} {1} {2}."
-    result = template.format(a, p.label, b)
+    result = template.format(a, p.iri, b)
 
     if p.constraint:
         result += u'\n' + indent + _indent + p.constraint.format(a)

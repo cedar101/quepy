@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 from refo import Star, Plus, Question, Any
 #from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
-from dsl import HasKeyword, IsPerson, LabelOf, DefinitionOf, BirthDateOf, BirthPlaceOf, SameAs, About, PrimaryTopicOf
+from dsl import HasKeyword, IsPerson, LabelOf, DefinitionOf, BirthDateOf, BirthPlaceOf, SameAs, PrimaryTopicOf
 
 from .basic import nouns, be
 

@@ -20,13 +20,13 @@ import random
 import datetime
 import logging.config
 import os
-from os.path import abspath, dirname, join
+import os.path
 from types import FunctionType
 
 import yaml
 from SPARQLWrapper import SPARQLWrapper, JSON
 
-sys.path.insert(0, join(abspath(dirname('__file__')), os.pardir, os.pardir))
+sys.path.insert(0, os.path.join(os.getcwd(), os.pardir, os.pardir))
 import quepy
 
 dbpedia = quepy.install("dbpedia")
@@ -34,12 +34,13 @@ dbpedia = quepy.install("dbpedia")
 #sparql = SPARQLWrapper("http://54.64.13.23:3030/dbpedia/sparql")
 #sparql = SPARQLWrapper("http://175.123.88.38:3030/dbpedia/sparql")
 #sparql = SPARQLWrapper("http://127.0.0.1:3030/dbpedia-ko/query")
-sparql = SPARQLWrapper("http://aflxscketcdev1:3030/dbpedia-ko/query")
+#sparql = SPARQLWrapper("http://aflxscketcdev1:3030/dbpedia-ko/query")
+sparql = SPARQLWrapper("http://aflxscketcdev1:8890/sparql")
 
 
 def process_define(results, target, metadata=None):
     for result in results["results"]["bindings"]:
-        if result[target]["xml:lang"] == "en":
+        if result[target]["xml:lang"] == "ko":
             return result[target]["value"]
 
 def process_enum(results, target, metadata=None):
@@ -68,10 +69,10 @@ def process_location(results, target, metadata=None):
     zoom = 12
     for result in results["results"]["bindings"]:
         latitude, longitude = result[target]["value"].split()
-        url = join("https://www.google.co.kr/maps/place",
-                   "{latitude}+{longitude}",
-                   "@{latitude},{longitude},{zoom}z").format(**locals())
-        return 'open ' + url
+        url = os.path.join("https://www.google.co.kr/maps/place",
+                           "{latitude}+{longitude}",
+                           "@{latitude},{longitude},{zoom}z").format(**locals())
+        return url
         #os.system('open ' + url)
 
 def process_time(results, target, metadata=None):
@@ -246,7 +247,7 @@ def main():
         questions = default_questions
 
     for question in questions:
-        print query_sparql(*get_query(question)) #[0]
+        print query_sparql(*get_query(question)[0:4]) #[0]
 
 if __name__ == "__main__":
     main()

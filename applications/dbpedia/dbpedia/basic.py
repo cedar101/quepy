@@ -16,7 +16,7 @@ from refo import Group, Plus, Question
 from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, Particle, \
                           Lemmas, Tokens
 from quepy.dsl import IsRelatedTo, HasType
-from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, About, PrimaryTopicOf
+from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, PrimaryTopicOf, SameAs
 
 #combine = lambda s: s.replace(' ', '')
 
@@ -88,11 +88,10 @@ class Place(Particle):
     regex = nouns
 
     def interpret(self, match):
-        place = HasKeyword(match.words.tokens)
-        return place
-        # wikipedia = About(place)
-        # dbpedia = PrimaryTopicOf(wikipedia) + IsPlace()
-        # return dbpedia
+        place_ko = HasKeyword(match.words.tokens)
+        place_en = SameAs(place_ko)
+        return place_en
+
 
 class WhatTimeIs(QuestionTemplate):
     """

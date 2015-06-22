@@ -57,7 +57,7 @@ def is_identifiers(s):
     return bool(_name_re.match(s))
 
 def main():
-    sparql = SPARQLWrapper("http://dbpedia.org/sparql") #"http://localhost:3030/dbpedia/sparql")
+    sparql = SPARQLWrapper("http://aflxscketcdev1:8890/sparql")
 
     history = FileHistory('.history.sparql')
 
