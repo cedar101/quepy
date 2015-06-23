@@ -25,7 +25,7 @@ import quepy.dsl
 reload(quepy.dsl)
 from quepy.dsl import FixedType, FixedRelation, FixedDataRelation, relation
 
-@relation(u"rdfs:label")
+@relation(u"(^(dbpedia-owl:wikiPageRedirects|dbpedia-owl:wikiPageDisambiguates)*)/rdfs:label")
 class HasKeyword(quepy.dsl.HasKeyword):
     '''Setup the Keywords for this application'''
     language = 'ko'

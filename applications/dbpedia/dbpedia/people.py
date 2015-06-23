@@ -55,7 +55,7 @@ class HowOldIsQuestion(QuestionTemplate):
             + Question(Pos("SF")))
 
     def interpret(self, match):
-        birth_date = BirthDateOf(match.person)
+        birth_date = BirthDateOf(SameAs(match.person))
         return birth_date, "age"
 
 
@@ -65,12 +65,12 @@ class WhereIsFromQuestion(QuestionTemplate):
     """
 
     regex = (Person()
-             + ((Question(Pos("JKG")) + Lemma("출신")) |
+             + ((Question(Pos("JKG")) + (Lemma("출신") | Lemma("출생지"))) |
                 (Question(be) + Lemmas("어디 출신")))
              + Star(Any()))
 
     def interpret(self, match):
-        birth_place = BirthPlaceOf(match.person)
+        birth_place = BirthPlaceOf(SameAs(match.person))
         label = LabelOf(birth_place)
 
         return label, "enum"
