@@ -107,4 +107,4 @@ class PopulationOfQuestion(QuestionTemplate):
 
     def interpret(self, match):
         population = PopulationOf(match.country)
-        return population, ("literal", lambda p: "{:,} 명".format(int(p)))
+        return population, ("literal", "{:,} 명")

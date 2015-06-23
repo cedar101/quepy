@@ -21,6 +21,7 @@ import datetime
 import logging.config
 import os
 import os.path
+import ast
 from types import FunctionType
 
 import yaml
@@ -37,6 +38,11 @@ dbpedia = quepy.install("dbpedia")
 #sparql = SPARQLWrapper("http://aflxscketcdev1:3030/dbpedia-ko/query")
 sparql = SPARQLWrapper("http://aflxscketcdev1:8890/sparql")
 
+def autocast(s):
+    try:
+        return ast.literal_eval(s)
+    except ValueError:
+        return s
 
 def process_define(results, target, metadata=None):
     for result in results["results"]["bindings"]:
@@ -60,10 +66,10 @@ def process_literal(results, target, metadata=None):
         if metadata is None:
             return literal
 
-        if isinstance(metadata, basestring):
-            return metadata.format(literal)
-        elif isinstance(metadata, FunctionType):
-            return metadata(literal)
+        if metadata:
+            return metadata.format(autocast(literal))
+        else:
+            return literal
 
 def process_location(results, target, metadata=None):
     zoom = 12

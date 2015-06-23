@@ -42,6 +42,19 @@ result_struct = {
     }
 }
 
+dummy_common = {
+  "common" :
+  {
+    "logname" : "CHAT-MESSAGE",
+    "tm" : "123456789",
+    "userid" : "ssanaii",
+    "usernick" : "사나이",
+    "bjid" : "afreecaai04",
+    "bno" : "xxxxxxxx",
+    "score" : "0.0123"
+  }
+}
+
 middleware_url = 'http://tsuzie.afreeca.com/udp-middle.php?eQueueType=QUEUE&name='
 
 def json2data(func):
@@ -49,14 +62,20 @@ def json2data(func):
     def wrapper(url, data=None, json=None, **kwargs):
         if data is None:
             kwargs.setdefault('headers', {})['Content-Type'] = 'application/json'
-            data = ujson.dumps(json, ensure_ascii=False)
-            json = None
+            try:
+                data = ujson.dumps(json, ensure_ascii=False)
+            except (TypeError, OverflowError):
+                data = None
+            json=None
         return func(url, data, json, **kwargs)
     return wrapper
 
 requests.post = json2data(requests.post)
 
 def send_middleware(queue_name, resp, url=middleware_url):
+    if 'common' not in resp:
+        resp['common'] = dummy_common
+
     r = requests.post(url + queue_name, json=resp)
                       #data=json.dumps(resp, ensure_ascii=False))
     resp = r.text
