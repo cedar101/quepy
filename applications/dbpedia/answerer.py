@@ -186,7 +186,7 @@ def get_query(question):
     #print '\n', query_type, metadata
 
     if query is None:
-        return "Query not generated\n", None, None, None, None
+        return "Query not generated", None, None, None, None
 
     #print query
 
