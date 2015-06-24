@@ -15,8 +15,10 @@ from __future__ import unicode_literals
 from refo import Group, Plus, Question
 from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, Particle, \
                           Lemmas, Tokens
-from quepy.dsl import IsRelatedTo, HasType
-from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, PrimaryTopicOf, SameAs
+from quepy.dsl import IsRelatedTo
+from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, PrimaryTopicOf, SameAs, HasType
+
+HasType.dataset = 'SERVICE <http://dbpedia.org>' #DATASETS['ko']
 
 #combine = lambda s: s.replace(' ', '')
 
@@ -55,12 +57,14 @@ class Target(Particle):
     regex = Pos("NNG")
 
     def interpret(self, match):
-        keyword = HasKeyword(match.words.tokens)
+        keyword = HasKeyword(match.words.lemmas)
         return keyword
 
 
 class ListEntity(QuestionTemplate):
     """
+    XXX: No answer of SPARQL found.
+
     Regex for questions like "구글 소프트웨어의 목록은?" "구글의 소프트웨어를 나열해"
     """
     # JKG: 관형격 조사(의), JKO: 목적격 조사(을/를), XSV: 동사 파생 접미사, VX: 보조 용언
@@ -68,13 +72,18 @@ class ListEntity(QuestionTemplate):
                (Question(Pos("JKO")) + Lemma("나열") + Pos("XSV") + Question(Pos("VX"))))
                + Question(Pos("SF")))
 
-    entity = Entity()
-    target = Target()
+    entity = Entity()   # Group(noun, "entity")
+    target = Target()   # Group(Pos("NNG"), "target")
     regex = entity + Question(Pos("JKG")) + target + closing
 
     def interpret(self, match):
         entity = match.entity
         target_type = match.target
+
+        # entity = HasKeyword(match.entity.tokens)
+        # target_type = HasKeyword(match.target.lemmas)
+        #import pdb; pdb.set_trace()
+
         target = HasType(target_type) + IsRelatedTo(entity)
         label = LabelOf(target)
 

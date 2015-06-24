@@ -23,7 +23,7 @@ Expression.dataset = DATASETS['en'] # default
 
 import quepy.dsl
 reload(quepy.dsl)
-from quepy.dsl import FixedType, FixedRelation, FixedDataRelation, relation
+from quepy.dsl import FixedType, FixedRelation, FixedDataRelation, HasType, relation
 
 @relation(u"(^(dbpedia-owl:wikiPageRedirects|dbpedia-owl:wikiPageDisambiguates)*)/rdfs:label")
 class HasKeyword(quepy.dsl.HasKeyword):

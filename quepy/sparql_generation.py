@@ -45,7 +45,7 @@ def expression_to_tuples(e):
     for node in e.iter_nodes():
         for relation, dest in e.iter_edges(node):
             if relation is IsRelatedTo:
-                relation = e.Predicate(u"?y{}".format(y),
+                relation = e.Relation(u"?y{}".format(y),
                                        e.dataset, e.constraint)
                 y += 1
             yield (adapt(node), relation, adapt(dest))

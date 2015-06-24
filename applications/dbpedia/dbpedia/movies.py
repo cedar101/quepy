@@ -30,7 +30,7 @@ class Movie(Particle):
 
 
 class Actor(Particle):
-    regex = nouns
+    regex = Pos("NNP") | Pos("SL")
 
     def interpret(self, match):
         name = match.words.tokens
@@ -38,7 +38,7 @@ class Actor(Particle):
 
 
 class Director(Particle):
-    regex = nouns
+    regex = Pos("NNP") | Pos("SL")
 
     def interpret(self, match):
         name = match.words.tokens
@@ -60,9 +60,9 @@ class ListMoviesQuestion(QuestionTemplate):
 
 class MoviesByDirectorQuestion(QuestionTemplate):
     """
-    Ex: "List movies directed by Quentin Tarantino.
-        "movies directed by Martin Scorsese"
-        "which movies did Mel Gibson directed"
+    Ex: "쿠엔틴 타란티노가 감독한 영화(의 목록(은)|을 나열해)?"
+        "마틴 스코세지가 감독한 영화"
+        "멜 깁슨이 감독한 영화는 어떤 거지?"
     """
 
     regex = (Question(Lemma("list")) + (Lemma("movie") | Lemma("film")) +

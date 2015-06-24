@@ -36,7 +36,8 @@ class FixedRelation(Expression):
     def __init__(self, destination, reverse=None):
         if reverse is None:
             reverse = self.reverse
-        super(FixedRelation, self).__init__()
+
+        Expression.__init__(self)
 
         if self.relation is None:
             raise ValueError("You *must* define the `relation` "
@@ -75,7 +76,6 @@ class FixedDataRelation(Expression):
     language = None
 
     def __init__(self, data):
-        #super(self.__class__, self).__init__()
         super(FixedDataRelation, self).__init__()
         if self.relation is None:
             raise ValueError("You *must* define the `relation` "
@@ -106,9 +106,12 @@ class HasKeyword(FixedDataRelation):
 
 
 @relation("rdf:type")
-class HasType(FixedRelation): pass
+class HasType(FixedRelation):
+    pass
 
-class IsRelatedTo(FixedRelation): pass
+#@relation(u"quepy:IsRelatedTo")
+class IsRelatedTo(FixedRelation):
+    pass
 # Looks weird, yes, here I am using `IsRelatedTo` as a unique identifier.
 IsRelatedTo.relation = IsRelatedTo
 

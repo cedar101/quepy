@@ -211,7 +211,8 @@ def process_answer():
     param["query_string"] = query
     param["metadata"] = metadata
 
-    answer_string = answerer.query_sparql(query, target, query_type, metadata)
+    answer_string = (answerer.query_sparql(query, target, query_type, metadata)
+                     if target else query)
 
     param['answer_string'] = answer_string
 
