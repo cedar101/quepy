@@ -52,28 +52,29 @@ def autocast(s):
 def process_define(results, target, metadata=None):
     for result in results["results"]["bindings"]:
         if result[target]["xml:lang"] == "ko":
-            return result[target]["value"]
+            yield result[target]["value"]
 
 def process_enum(results, target, metadata=None):
-    used_labels = []
+    #used_labels = []
 
     for result in results["results"]["bindings"]:
         if result[target]["type"] == u"literal":
             if result[target]["xml:lang"] in ("en", "ko"):
-                label = result[target]["value"]
-                if label not in used_labels:
-                    used_labels.append(label)
+                yield result[target]["value"]
+                # label = result[target]["value"]
+                # if label not in used_labels:
+                #     used_labels.append(label)
 
-    return '\n'.join(used_labels)
+    #return '\n'.join(used_labels)
 
 def process_literal(results, target, metadata=None):
     for result in results["results"]["bindings"]:
         literal = result[target]["value"]
 
         if metadata:
-            return metadata.format(autocast(literal))
+            yield metadata.format(autocast(literal))
         else:
-            return literal
+            yield literal
 
 def process_location(results, target, metadata=None):
     zoom = 12
@@ -82,7 +83,7 @@ def process_location(results, target, metadata=None):
         url = os.path.join("https://www.google.co.kr/maps/place",
                            "{latitude}+{longitude}",
                            "@{latitude},{longitude},{zoom}z").format(**locals())
-        return url
+        yield url
         #os.system('open ' + url)
 
 def process_time(results, target, metadata=None):
@@ -114,7 +115,7 @@ def process_time(results, target, metadata=None):
             location_string = random.choice(["where you are",
                                              "your location"])
 
-            return "Between %s %s %s, depending on %s" % \
+            yield "Between %s %s %s, depending on %s" % \
                   (from_time.strftime("%H:%M"),
                    connector,
                    to_time.strftime("%H:%M on %A"),
@@ -126,7 +127,7 @@ def process_time(results, target, metadata=None):
             delta = datetime.timedelta(hours=offset)
             the_time = gmt + delta
 
-            return the_time.strftime("%H:%M") # on %A")
+            yield the_time.strftime("%H:%M") # on %A")
 
 def process_age(results, target, metadata=None):
     assert len(results["results"]["bindings"]) == 1
@@ -140,7 +141,7 @@ def process_age(results, target, metadata=None):
     now = now.date()
 
     age = now - birth_date
-    return "만 {}세".format(age.days / 365)
+    yield "만 {}세".format(age.days / 365)
 
 process_handlers = {
     "define": process_define,
@@ -204,8 +205,8 @@ def query_sparql(query, target, query_type, metadata):
         print "Please wait...\n"
         results = sparql.query().convert()
         #import pdb; pdb.set_trace()
-        if not results["results"]["bindings"]:
-            return "No answer found"
+        # if not results["results"]["bindings"]:
+        #     return "No answer found"
 
     return process_handlers[query_type](results, target, metadata) #, query
 
@@ -254,7 +255,8 @@ def main():
         questions = default_questions
 
     for question in questions:
-        print query_sparql(*get_query(question)[0:4]) #[0]
+        for result in query_sparql(*get_query(question)[0:4]):
+            print result
 
 if __name__ == "__main__":
     main()

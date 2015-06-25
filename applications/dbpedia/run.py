@@ -11,6 +11,8 @@ from copy import deepcopy
 
 from flask import request, url_for
 from flask.ext.api import FlaskAPI, status, exceptions
+from flask.ext.api.exceptions import ParseError
+from flask.ext.api.response import APIResponse
 
 import requests
 import ujson
@@ -21,10 +23,6 @@ from rq.decorators import job
 import rq_dashboard
 
 import answerer
-
-app = FlaskAPI(__name__)
-# app.config.from_object(rq_dashboard.default_settings)
-# app.register_blueprint(rq_dashboard.blueprint)
 
 result_struct = {
     "type": "SPARQL",
@@ -80,6 +78,16 @@ def send_middleware(queue_name, resp, url=middleware_url):
     if int(resp) < 1:
         raise requests.exceptions.RequestException
     return resp
+
+class MyFlaskAPI(FlaskAPI):
+    def handle_api_exception(self, exc):
+        resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', exc.detail)
+        return APIResponse(exc.detail, status=exc.status_code)
+
+app = MyFlaskAPI(__name__)
+# app.config.from_object(rq_dashboard.default_settings)
+# app.register_blueprint(rq_dashboard.blueprint)
+
 
 
 # @app.route('/question', methods=['GET', 'POST'])
@@ -200,9 +208,11 @@ def process_answer():
     try:
         query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
     except answerer.QueryNotGenerated, e:
-        query = str(e)
-        target, query_type, metadata = None, None, None
-        rule_used = e.__class__.__name__
+        resp = dict(req_body,
+                    error={"code": ParseError.status_code,
+                           "type": e.__class__.__name__,
+                           "detail": str(e)})
+        raise ParseError(resp)
 
     result = deepcopy(result_struct)
 
@@ -214,10 +224,9 @@ def process_answer():
     param["query_string"] = query
     param["metadata"] = metadata
 
-    answer_string = ('\n'.join(answerer.query_sparql(query, target, query_type, metadata))
-                     if target else query)
+    answers = list(answerer.query_sparql(query, target, query_type, metadata))
 
-    param['answer_string'] = answer_string
+    param['answers'] = answers
 
     resp = dict(req_body, result=result)
 

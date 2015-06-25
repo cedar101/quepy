@@ -33,11 +33,11 @@ class BandMembersQuestion(QuestionTemplate):
     Ex: "라디오헤드 멤버"
         "메탈리카의 멤버는?"
     """
+    who = (Lemma('누구') | Lemma('누가'))
 
-    regex = (Band() + Question(Pos('JKG')) + Lemma("멤버") + Question(Pos('XSN'))
-            + Question(be)
-            + Question(Lemma('누구') | Lemmas('누구 누구') | Lemma('누가') | Lemmas('누가 누가'))
-            + Star(Any()))
+    regex = (Question(who) + Band() + Question(Pos('JKG')) +
+             Lemma("멤버") + Question(Pos('XSN')) + # 명사 파생 접미사
+             Question(be) + Question(who) + Star(Any()))
 
     def interpret(self, match):
         member = IsMemberOf(match.band)
