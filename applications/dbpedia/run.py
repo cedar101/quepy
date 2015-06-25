@@ -11,8 +11,8 @@ from copy import deepcopy
 
 from flask import request, url_for
 from flask.ext.api import FlaskAPI, status, exceptions
-from flask.ext.api.exceptions import ParseError
 from flask.ext.api.response import APIResponse
+from flask.ext.api.exceptions import ParseError
 
 import requests
 import ujson
@@ -23,20 +23,6 @@ from rq.decorators import job
 import rq_dashboard
 
 import answerer
-
-result_struct = {
-    "type": "SPARQL",
-    "data": {
-        "intention": None,
-        "param": {
-            "match": None,
-            "result_type": None,
-            "query_string": None,
-            "answers": None,
-            "metadata": None
-        }
-    }
-}
 
 dummy_common = {
   "common" :
@@ -49,6 +35,25 @@ dummy_common = {
     "bno" : "xxxxxxxx",
     "score" : "0.0123"
   }
+}
+
+result_struct = {
+    "type": "SPARQL",
+    "data": {
+        "intention": None,
+        "param": {
+            "match": None,
+            "result_type": None,
+            "query_string": None,
+            "answers": None,
+            "metadata": None
+        },
+        "status": {
+            "code": status.HTTP_200_OK,
+            "error_type": None,
+            "error_detail": None
+        }
+    },
 }
 
 middleware_url = 'http://tsuzie.afreeca.com/udp-middle.php?eQueueType=QUEUE&name='
@@ -205,18 +210,18 @@ def process_answer():
     req_body = request.data
     chat_text = req_body['extension']['chat_text']
 
+    result = deepcopy(result_struct)
+    result_data = result["data"]
+
     try:
         query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
     except answerer.ParseError, e:
-        resp = dict(req_body,
-                    error={"code": ParseError.status_code,
-                           "type": e.__class__.__name__,
-                           "detail": str(e)})
+        result_data["status"] = {"code": ParseError.status_code,
+                                 "error_type": e.__class__.__name__,
+                                 "error_detail": str(e)}
+        resp = dict(req_body, result=result)
         raise ParseError(resp)
 
-    result = deepcopy(result_struct)
-
-    result_data = result["data"]
     result_data["intention"] = rule_used
     param = result_data["param"]
     param["match"] = target
