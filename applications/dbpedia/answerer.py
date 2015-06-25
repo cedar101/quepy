@@ -34,13 +34,13 @@ dbpedia = quepy.install("dbpedia")
 
 sparql = SPARQLWrapper("http://aflxscketcdev1:8890/sparql")
 
-class QueryNotGenerated(ValueError):
+class ParseError(ValueError):
     def __init__(self, question):
         ValueError.__init__(self)
         self.question = question
 
     def __str__(self):
-        return "Query not generated: " + self.question
+        return "Parse error -- Query not generated: " + self.question
 
 
 def autocast(s):
@@ -182,7 +182,7 @@ def get_query(question):
     target, query, metadata, rule_used = dbpedia.get_query(question)
 
     if query is None:
-        raise QueryNotGenerated(question)
+        raise ParseError(question)
         #return "Query not generated", None, None, None, None
 
     if isinstance(metadata, tuple):

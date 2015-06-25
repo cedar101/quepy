@@ -207,7 +207,7 @@ def process_answer():
 
     try:
         query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
-    except answerer.QueryNotGenerated, e:
+    except answerer.ParseError, e:
         resp = dict(req_body,
                     error={"code": ParseError.status_code,
                            "type": e.__class__.__name__,
