@@ -32,7 +32,7 @@ result_struct = {
             "match": None,
             "result_type": None,
             "query_string": None,
-            "answer_string": None,
+            "answers": None,
             "metadata": None
         }
     }
