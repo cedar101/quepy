@@ -24,7 +24,7 @@ class Person(Particle):
 
     def interpret(self, match):
         name = match.words.tokens
-        person = HasKeyword(name)
+        person = HasKeyword(name) #+ IsPerson()
         return person
         # wikipedia = About(person)
         # dbpedia = PrimaryTopicOf(wikipedia) + IsPerson()

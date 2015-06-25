@@ -12,12 +12,12 @@ Movie related regex.
 """
 from __future__ import unicode_literals
 
-from refo import Plus, Question
+from refo import Plus, Question, Star, Any
 #from quepy.dsl import HasKeyword
-from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
+from quepy.parsing import Lemma, Lemmas, Pos, Token, QuestionTemplate, Particle
 from dsl import HasKeyword, IsMovie, NameOf, IsPerson, \
     DirectedBy, LabelOf, DurationOf, HasActor, HasName, ReleaseDateOf, \
-    DirectorOf, StarsIn, DefinitionOf
+    DirectorOf, StarsIn, DefinitionOf, SameAs, DATASETS
 
 from .basic import nouns, be
 
@@ -26,23 +26,23 @@ class Movie(Particle):
 
     def interpret(self, match):
         name = match.words.tokens
-        return IsMovie() + HasName(name)
+        return HasName(name) # + IsMovie()
 
 
 class Actor(Particle):
-    regex = Pos("NNP") | Pos("SL")
+    regex = Plus(Pos("NNP") | Pos("SL"))
 
     def interpret(self, match):
         name = match.words.tokens
-        return IsPerson() + HasKeyword(name)
+        return SameAs(HasKeyword(name)) # + IsPerson()
 
 
 class Director(Particle):
-    regex = Pos("NNP") | Pos("SL")
+    regex = Plus(Pos("NNP") | Pos("SL"))
 
     def interpret(self, match):
         name = match.words.tokens
-        return IsPerson() + HasKeyword(name)
+        return SameAs(HasKeyword(name)) # + IsPerson()
 
 
 class ListMoviesQuestion(QuestionTemplate):
@@ -60,19 +60,19 @@ class ListMoviesQuestion(QuestionTemplate):
 
 class MoviesByDirectorQuestion(QuestionTemplate):
     """
-    Ex: "쿠엔틴 타란티노가 감독한 영화(의 목록(은)|을 나열해)?"
+    Ex: "쿠엔틴 타란티노가 감독한 영화(의 목록(은)?|을 나열해.)"
         "마틴 스코세지가 감독한 영화"
-        "멜 깁슨이 감독한 영화는 어떤 거지?"
+        "멜 깁슨이 감독한 영화는 뭐(가 있)지?"
     """
 
-    regex = (Question(Lemma("list")) + (Lemma("movie") | Lemma("film")) +
-             Question(Lemma("direct")) + Lemma("by") + Director()) | \
-            (Lemma("which") + (Lemma("movie") | Lemma("film")) + Lemma("do") +
-             Director() + Lemma("direct") + Question(Pos(".")))
+    regex = (Director() + Question(Pos('JKS')) + Token("감독") +
+             Question(Pos('JKG') | ((Pos('XSA') | Pos('XSV')) + Question(Pos('ETM')))) +
+             Token('영화') + Star(Any(), greedy=False))
 
     def interpret(self, match):
-        movie = IsMovie() + DirectedBy(match.director)
-        movie_name = LabelOf(movie)
+
+        movie = DirectedBy(match.director) + IsMovie()
+        movie_name = LabelOf(SameAs(movie, DATASETS['en']), DATASETS['ko'])
 
         return movie_name, "enum"
 

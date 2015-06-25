@@ -17,10 +17,13 @@ from copy import copy
 from quepy.expression import Expression
 from quepy.encodingpolicy import encoding_flexible_conversion
 
+Relation = namedtuple('Relation', 'iri dataset constraint')
+
 def relation(iri):
     def decorate(cls):
-        cls.Relation = namedtuple('Relation', 'iri dataset constraint')
-        cls.relation = cls.Relation(iri, cls.dataset, cls.constraint)
+        cls.iri = iri
+        cls.relation = property(lambda self: Relation(self.iri, self.dataset, self.constraint))
+        #cls.relation = Relation(iri, cls.dataset, cls.constraint)
         return cls
     return decorate
 
@@ -33,7 +36,7 @@ class FixedRelation(Expression):
     relation = None
     reverse = False
 
-    def __init__(self, destination, reverse=None):
+    def __init__(self, destination, dataset=None, reverse=None):
         if reverse is None:
             reverse = self.reverse
 
@@ -42,6 +45,8 @@ class FixedRelation(Expression):
         if self.relation is None:
             raise ValueError("You *must* define the `relation` "
                              "class attribute to use this class.")
+        if dataset is not None:
+            self.dataset = dataset
 
         self.nodes = copy(destination.nodes)
         self.head = destination.head

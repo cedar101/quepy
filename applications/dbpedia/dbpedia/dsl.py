@@ -32,9 +32,9 @@ class HasKeyword(quepy.dsl.HasKeyword):
     dataset = DATASETS[language]
     constraint = 'FILTER NOT EXISTS {{ {} rdf:type skos:Concept. }}'
 
-    @staticmethod
-    def sanitize(text):
-        return text.replace(' ', '')
+    # @staticmethod
+    # def sanitize(text):
+    #     return text.replace(' ', '')
 
 
 class IsPerson(FixedType):

@@ -107,8 +107,8 @@ class WhatTimeIs(QuestionTemplate):
 
     regex1 = (Question(Token("지금")) + Place() + Question(be) +
               Question(Token("지금")) + Tokens("몇 시") + Question(Pos("VCP")))  # VCP: 긍정 지정사
-    regex2 = (Place() + Question(Pos("JKG"))
-              + (Token("현재") | Token("지금")) + (Token("시간") | Token("시각"))
+    regex2 = (Question(Token("현재") | Token("지금")) + Place() + Question(Pos("JKG"))
+              + Question(Token("현재") | Token("지금")) + (Token("시간") | Token("시각"))
               + Question(be))     # JKG: 관형격 조사
     regex = (regex1 | regex2) + Question(Pos("SF"))
 

@@ -12,8 +12,6 @@ from copy import deepcopy
 from flask import request, url_for
 from flask.ext.api import FlaskAPI, status, exceptions
 
-#from werkzeug.datastructures import ImmutableDict
-
 import requests
 import ujson
 
@@ -84,109 +82,109 @@ def send_middleware(queue_name, resp, url=middleware_url):
     return resp
 
 
-@app.route('/question', methods=['GET', 'POST'])
-def process_question():
-    req_body = request.data
+# @app.route('/question', methods=['GET', 'POST'])
+# def process_question():
+#     req_body = request.data
 
-    chat_text = req_body['extension']['chat_text']
+#     chat_text = req_body['extension']['chat_text']
 
-    query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
+#     query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
 
-    result = deepcopy(result_struct)
+#     result = deepcopy(result_struct)
 
-    result_data = result["data"]
-    result_data["intention"] = rule_used
-    param = result_data["param"]
-    param["match"] = target
-    param["result_type"] = query_type
-    param["query_string"] = query
-    param["metadata"] = metadata
+#     result_data = result["data"]
+#     result_data["intention"] = rule_used
+#     param = result_data["param"]
+#     param["match"] = target
+#     param["result_type"] = query_type
+#     param["query_string"] = query
+#     param["metadata"] = metadata
 
-    resp = dict(req_body, result=result)
+#     resp = dict(req_body, result=result)
 
-    resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.RET', resp)
+#     resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.RET', resp)
 
-    return resp
+#     return resp
 
-conn = Redis('localhost', 6379)
-q = Queue('low', connection=conn)
+# conn = Redis('localhost', 6379)
+# q = Queue('low', connection=conn)
 
-#@job('low', connection=conn, timeout=30)
-def sparql_job(request, answerer, middleware_url):
-    req_body = request.data
+# #@job('low', connection=conn, timeout=30)
+# def sparql_job(request, answerer, middleware_url):
+#     req_body = request.data
 
-    result = req_body['result']
-    result_data = result['data']
-    param = result_data['param']
-    query = param['query_string']
-    target = param['match']
-    query_type = param['result_type']
-    metadata = param.get('metadata')
+#     result = req_body['result']
+#     result_data = result['data']
+#     param = result_data['param']
+#     query = param['query_string']
+#     target = param['match']
+#     query_type = param['result_type']
+#     metadata = param.get('metadata')
 
-    answer_string = answerer.query_sparql(query, target, query_type, metadata)
+#     answer_string = answerer.query_sparql(query, target, query_type, metadata)
 
-    param['answer_string'] = answer_string
+#     param['answer_string'] = answer_string
 
-    resp = dict(req_body, result=result)
-    resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', resp, middleware_url)
+#     resp = dict(req_body, result=result)
+#     resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', resp, middleware_url)
 
-    return resp
+#     return resp
 
-@app.route('/sparql', methods=['GET', 'POST'])
-def process_sparql():
-    #job = q.enqueue_call(func=sparql_job, args=(request, answerer, middleware_url), result_ttl=5000)
-    #sparql_job.delay(request, answerer)
+# @app.route('/sparql', methods=['GET', 'POST'])
+# def process_sparql():
+#     #job = q.enqueue_call(func=sparql_job, args=(request, answerer, middleware_url), result_ttl=5000)
+#     #sparql_job.delay(request, answerer)
 
-    req_body = request.data
+#     req_body = request.data
 
-    result = req_body['result']
-    result_data = result['data']
-    param = result_data['param']
-    query = param['query_string']
-    target = param['match']
-    query_type = param['result_type']
-    metadata = param.get('metadata')
+#     result = req_body['result']
+#     result_data = result['data']
+#     param = result_data['param']
+#     query = param['query_string']
+#     target = param['match']
+#     query_type = param['result_type']
+#     metadata = param.get('metadata')
 
-    answer_string = answerer.query_sparql(query, target, query_type, metadata)
+#     answer_string = answerer.query_sparql(query, target, query_type, metadata)
 
-    param['answer_string'] = answer_string
+#     param['answer_string'] = answer_string
 
-    #result_data.update()
+#     #result_data.update()
 
-    resp = dict(req_body, result=result)
+#     resp = dict(req_body, result=result)
 
-    resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', resp)
+#     resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', resp)
 
-    return resp
+#     return resp
 
-    #return job.get_id()
+#     #return job.get_id()
 
-#@job('low', connection=conn, timeout=30)
-def answer_job(request, answerer, middleware_url, result_struct):
-    req_body = request.data
-    chat_text = req_body['extension']['chat_text']
+# #@job('low', connection=conn, timeout=30)
+# def answer_job(request, answerer, middleware_url, result_struct):
+#     req_body = request.data
+#     chat_text = req_body['extension']['chat_text']
 
-    query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
+#     query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
 
-    result = deepcopy(result_struct)
+#     result = deepcopy(result_struct)
 
-    result_data = result["data"]
-    result_data["intention"] = rule_used
-    param = result_data["param"]
-    param["match"] = target
-    param["result_type"] = query_type
-    param["query_string"] = query
-    param["metadata"] = metadata
+#     result_data = result["data"]
+#     result_data["intention"] = rule_used
+#     param = result_data["param"]
+#     param["match"] = target
+#     param["result_type"] = query_type
+#     param["query_string"] = query
+#     param["metadata"] = metadata
 
-    answer_string = answerer.query_sparql(query, target, query_type, metadata)
+#     answer_string = answerer.query_sparql(query, target, query_type, metadata)
 
-    param['answer_string'] = answer_string
+#     param['answer_string'] = answer_string
 
-    resp = dict(req_body, result=result)
+#     resp = dict(req_body, result=result)
 
-    resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', resp)
+#     resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', resp)
 
-    return resp
+#     return resp
 
 
 @app.route('/answer', methods=['GET', 'POST'])
@@ -199,7 +197,12 @@ def process_answer():
     req_body = request.data
     chat_text = req_body['extension']['chat_text']
 
-    query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
+    try:
+        query, target, query_type, metadata, rule_used = answerer.get_query(chat_text)
+    except answerer.QueryNotGenerated, e:
+        query = str(e)
+        target, query_type, metadata = None, None, None
+        rule_used = e.__class__.__name__
 
     result = deepcopy(result_struct)
 
@@ -211,7 +214,7 @@ def process_answer():
     param["query_string"] = query
     param["metadata"] = metadata
 
-    answer_string = (answerer.query_sparql(query, target, query_type, metadata)
+    answer_string = ('\n'.join(answerer.query_sparql(query, target, query_type, metadata))
                      if target else query)
 
     param['answer_string'] = answer_string

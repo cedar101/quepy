@@ -11,11 +11,11 @@
 Music related regex
 """
 
-from refo import Plus, Question
+from refo import Plus, Question, Star, Any
 #from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
 from dsl import HasKeyword, IsBand, LabelOf, IsMemberOf, ActiveYears, MusicGenreOf, \
-    NameOf, IsAlbum, ProducedBy
+    NameOf, IsAlbum, ProducedBy, SameAs
 
 from .basic import nouns, be
 
@@ -24,22 +24,20 @@ class Band(Particle):
 
     def interpret(self, match):
         name = match.words.tokens.title()
-        return IsBand() + HasKeyword(name)
+        return SameAs(HasKeyword(name)) + IsBand()
 
 
 class BandMembersQuestion(QuestionTemplate):
     """
     Regex for questions about band member.
-    Ex: "Radiohead members"
-        "What are the members of Metallica?"
+    Ex: "라디오헤드 멤버"
+        "메탈리카의 멤버는?"
     """
 
-    regex1 = Band() + Lemma("member")
-    regex2 = Lemma("member") + Pos("IN") + Band()
-    regex3 = Pos("WP") + Lemma("be") + Pos("DT") + Lemma("member") + \
-        Pos("IN") + Band()
-
-    regex = (regex1 | regex2 | regex3) + Question(Pos("."))
+    regex = (Band() + Question(Pos('JKG')) + Lemma("멤버") + Question(Pos('XSN'))
+            + Question(be)
+            + Question(Lemma('누구') | Lemmas('누구 누구') | Lemma('누가') | Lemmas('누가 누가'))
+            + Star(Any()))
 
     def interpret(self, match):
         member = IsMemberOf(match.band)

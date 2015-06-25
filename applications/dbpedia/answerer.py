@@ -32,11 +32,16 @@ import quepy
 
 dbpedia = quepy.install("dbpedia")
 
-#sparql = SPARQLWrapper("http://54.64.13.23:3030/dbpedia/sparql")
-#sparql = SPARQLWrapper("http://175.123.88.38:3030/dbpedia/sparql")
-#sparql = SPARQLWrapper("http://127.0.0.1:3030/dbpedia-ko/query")
-#sparql = SPARQLWrapper("http://aflxscketcdev1:3030/dbpedia-ko/query")
 sparql = SPARQLWrapper("http://aflxscketcdev1:8890/sparql")
+
+class QueryNotGenerated(ValueError):
+    def __init__(self, question):
+        ValueError.__init__(self)
+        self.question = question
+
+    def __str__(self):
+        return "Query not generated: " + self.question
+
 
 def autocast(s):
     try:
@@ -54,17 +59,16 @@ def process_enum(results, target, metadata=None):
 
     for result in results["results"]["bindings"]:
         if result[target]["type"] == u"literal":
-            if result[target]["xml:lang"] == "en":
+            if result[target]["xml:lang"] in ("en", "ko"):
                 label = result[target]["value"]
                 if label not in used_labels:
                     used_labels.append(label)
-                    return label
+
+    return '\n'.join(used_labels)
 
 def process_literal(results, target, metadata=None):
     for result in results["results"]["bindings"]:
         literal = result[target]["value"]
-        if metadata is None:
-            return literal
 
         if metadata:
             return metadata.format(autocast(literal))
@@ -176,19 +180,16 @@ def get_query(question):
 
     target, query, metadata, rule_used = dbpedia.get_query(question)
 
+    if query is None:
+        raise QueryNotGenerated(question)
+        #return "Query not generated", None, None, None, None
+
     if isinstance(metadata, tuple):
         query_type = metadata[0]
         metadata = metadata[1]
     else:
         query_type = metadata
         metadata = None
-
-    #print '\n', query_type, metadata
-
-    if query is None:
-        return "Query not generated", None, None, None, None
-
-    #print query
 
     if target.startswith("?"):
         target = target[1:]
