@@ -13,11 +13,20 @@ Music related regex
 
 from refo import Plus, Question, Star, Any
 #from quepy.dsl import HasKeyword
-from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
+from quepy.parsing import Token, Tokens, Lemma, Lemmas, Pos, Poss, QuestionTemplate, Particle
 from dsl import HasKeyword, IsBand, LabelOf, IsMemberOf, ActiveYears, MusicGenreOf, \
     NameOf, IsAlbum, ProducedBy, SameAs
 
 from .basic import nouns, be
+
+class MusicalArtist(Particle):
+    ''' dbpedia-owl: MusicalArtist'''
+    regex = nouns
+
+    def interpret(self, match):
+        name = match.words.tokens
+        return SameAs(HasKeyword(name))
+
 
 class Band(Particle):
     regex = nouns
@@ -30,6 +39,7 @@ class Band(Particle):
 class BandMembersQuestion(QuestionTemplate):
     """
     Regex for questions about band member.
+
     Ex: "라디오헤드 멤버"
         "메탈리카의 멤버는?"
     """
@@ -48,12 +58,19 @@ class BandMembersQuestion(QuestionTemplate):
 class FoundationQuestion(QuestionTemplate):
     """
     Regex for questions about the creation of a band.
-    Ex: "When was Pink Floyd founded?"
-        "When was Korn formed?"
+
+    Ex: "핑크 플로이드는 언제 결성했어?"
+        "언제 콘이 활동을 시작했지?"
     """
 
-    regex = Pos("WRB") + Lemma("be") + Band() + \
-        (Lemma("form") | Lemma("found")) + Question(Pos("."))
+    regex1 = (Question(Lemma('언제')) + Band() + Question(be) + Question(Lemma('언제'))
+              + (Lemma("결성") | (Lemma("활동") + Question(Pos('JKO')) + Lemma("시작"))) # 목적격 조사
+              + Poss('XSV EF') # 동사 파생 접미사 + (선어말 어미 생략) + 종결 어미
+              + Question(Pos("SF")))
+    regex2 = (Band() + Question(Pos('JKG')) + (Lemmas('결성 일') | Lemmas('활동 시작 일'))
+              + Question(be)
+              + Question(Lemma('언제')) + Question(Pos("VCF")) + Question(Pos("SF")))
+    regex = regex1 | regex2
 
     def interpret(self, match):
         active_years = ActiveYears(match.band)
@@ -63,34 +80,37 @@ class FoundationQuestion(QuestionTemplate):
 class GenreQuestion(QuestionTemplate):
     """
     Regex for questions about the genre of a band.
-    Ex: "What is the music genre of Gorillaz?"
-        "Music genre of Radiohead"
+    Ex: "고릴라즈의 장르는 뭐지?"
+        "라디오헤드의 (음악) 장르"
     """
 
-    optional_opening = Question(Pos("WP") + Lemma("be") + Pos("DT"))
-    regex = optional_opening + Question(Lemma("music")) + Lemma("genre") + \
-        Pos("IN") + Band() + Question(Pos("."))
+    regex = (Band() + Question(Pos('JKG')) +
+             Question(Token('음악')) + Token('장르') + Question(be) +
+             Question((Lemma('뭣') + Pos('VCP')) | Lemma('무엇') + Poss('VCP EF')) +
+             Question(Pos('SF')))
 
     def interpret(self, match):
         genre = MusicGenreOf(match.band)
-        label = LabelOf(genre)
+        label = LabelOf.to_korean(genre)
         return label, "enum"
 
 
 class AlbumsOfQuestion(QuestionTemplate):
     """
-    Ex: "List albums of Pink Floyd"
-        "What albums did Pearl Jam record?"
-        "Albums by Metallica"
+    Ex: "핑크 플로이드의 앨범을 나열해봐."
+        "펄 잼이 만든 앨범이 뭐지?"
+        "메탈리카의 앨범 (목록)"
     """
 
-    regex = (Question(Lemma("list")) + (Lemma("album") | Lemma("albums")) + \
-             Pos("IN") + Band()) | \
-            (Lemmas("what album do") + Band() +
-             (Lemma("record") | Lemma("make")) + Question(Pos("."))) | \
-            (Lemma("list") + Band() + Lemma("album"))
+    regex = (MusicalArtist() +
+             Question(Pos('JKG') | (Pos('JKS') + (Token('만든') | Tokens('레코딩 한') | Tokens('제작 한')))) +
+             Token('앨범') +
+             ((Question(Pos('JKG')) + Question(Token('목록'))) |
+              (Question(be) + Question((Lemma('뭣') + Pos('VCP')) | Lemma('무엇') + Poss('VCP EF'))) |
+              (Question(Pos('JKO')) + Question(Token('나열')) + Question(Pos('XSV')) + Question(Pos('VX')))) + # 보조 용언
+              Question(Pos('SF')))
 
     def interpret(self, match):
-        album = IsAlbum() + ProducedBy(match.band)
+        album = IsAlbum() + ProducedBy(match.musicalartist)
         name = NameOf(album)
         return name, "enum"

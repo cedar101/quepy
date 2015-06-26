@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 
 from refo import Group, Plus, Question
 from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, Particle, \
-                          Lemmas, Tokens
+                          Lemmas, Tokens, Poss
 from quepy.dsl import IsRelatedTo
 from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, PrimaryTopicOf, SameAs, HasType
 
@@ -37,11 +37,12 @@ class Thing(Particle):
 
 class WhatIs(QuestionTemplate):
     """
-    Regex for questions like "아프리카TV가 뭐야?"
+    Regex for questions like "아프리카TV가 뭐야?", "온톨로지의 정의는?"
     """
     # JKS: 주격 조사(이/가), JX: 보조사(은/는), VCP: 긍정 지정사(이다), SF: 마침표, 물음표, 느낌표
-    regex = (Thing() + Question(be) +
-             (Lemma("무엇") | Lemma("뭣")) + Question(Pos("VCP")) + Question(Pos("SF")))
+    regex = (Thing() + Question(Pos('JKG')) + Question(Token('정의')) + Question(be) +
+             Question((Lemma('뭣') + Pos('VCP')) | Lemma('무엇') + Poss('VCP EF')) +
+             Question(Pos("SF")))
 
     def interpret(self, match):
         label = DefinitionOf(match.thing)

@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 
 from refo import Plus, Question, Star, Any
 #from quepy.dsl import HasKeyword
-from quepy.parsing import Lemma, Lemmas, Pos, Token, QuestionTemplate, Particle
+from quepy.parsing import Lemma, Lemmas, Pos, Poss, Token, Tokens, QuestionTemplate, Particle, WordList
 from dsl import HasKeyword, IsMovie, NameOf, IsPerson, \
     DirectedBy, LabelOf, DurationOf, HasActor, HasName, ReleaseDateOf, \
     DirectorOf, StarsIn, DefinitionOf, SameAs, DATASETS
@@ -22,11 +22,15 @@ from dsl import HasKeyword, IsMovie, NameOf, IsPerson, \
 from .basic import nouns, be
 
 class Movie(Particle):
-    regex = nouns
+    # 고유명사, 영어, 숫쟈로만 이루어진 제목은 따옴표 불필요
+    regex = ((Plus(Pos("NNP") | Pos("SL")) + Question(Pos("SN"))) |
+             (Token("'") + Plus(Any()) + Token("'")) |  # 따옴표를 사용하면
+             (Token('"') + Plus(Any()) + Token('"')))   # 어떤 품사든 사용 가능
 
     def interpret(self, match):
-        name = match.words.tokens
-        return HasName(name) # + IsMovie()
+        title = WordList(word for word in match.words if word.pos != 'SY').tokens
+
+        return HasKeyword(title) + IsMovie(dataset=DATASETS['ko'])
 
 
 class Actor(Particle):
@@ -34,7 +38,7 @@ class Actor(Particle):
 
     def interpret(self, match):
         name = match.words.tokens
-        return SameAs(HasKeyword(name)) # + IsPerson()
+        return SameAs(HasKeyword(name)) + IsPerson()
 
 
 class Director(Particle):
@@ -42,7 +46,7 @@ class Director(Particle):
 
     def interpret(self, match):
         name = match.words.tokens
-        return SameAs(HasKeyword(name)) # + IsPerson()
+        return SameAs(HasKeyword(name)) + IsPerson()
 
 
 class ListMoviesQuestion(QuestionTemplate):
@@ -72,34 +76,32 @@ class MoviesByDirectorQuestion(QuestionTemplate):
     def interpret(self, match):
 
         movie = DirectedBy(match.director) + IsMovie()
-        movie_name = LabelOf(SameAs(movie, DATASETS['en']), DATASETS['ko'])
+        movie_name = LabelOf.to_korean(movie)
+        #LabelOf(SameAs(movie, DATASETS['en']), DATASETS['ko'])
 
         return movie_name, "enum"
 
 
 class MovieDurationQuestion(QuestionTemplate):
     """
-    Ex: "How long is Pulp Fiction"
-        "What is the duration of The Thin Red Line?"
+    Ex: "펄프 픽션은 얼마나 길지?"
+        "벤허의 러닝 타임은 얼마나 (하지|해|되지|돼)?"
     """
 
-    regex = ((Lemmas("how long be") + Movie()) |
-            (Lemmas("what be") + Pos("DT") + Lemma("duration") +
-             Pos("IN") + Movie())) + \
-            Question(Pos("."))
+    regex = (Movie() + Question(Pos('JKG')) + Question(Lemmas('러닝 타임') | Lemma('런타임'))
+             + Question(be) + Question(Lemma('얼마나'))
+             + Question(Pos('VV') | Pos('VA')) + Question(Pos('EF'))
+             + Question(Pos('SF')))
 
     def interpret(self, match):
-        duration = DurationOf(match.movie)
-        return duration, ("literal", "{} minutes long")
+        duration = DurationOf(SameAs(match.movie))
+        return duration, ("literal", "{:n} 분")
 
 
 class ActedOnQuestion(QuestionTemplate):
     """
-    Ex: "List movies with Hugh Laurie"
-        "Movies with Matt LeBlanc"
-        "In what movies did Jennifer Aniston appear?"
-        "Which movies did Mel Gibson starred?"
-        "Movies starring Winona Ryder"
+    Ex: "멜 깁슨이 나온(나오는|출연한) 영화(의 목록|를 나열해)"
+        "어떤 영화에 제니퍼 애니스톤이 나왔지(출연했지)?"
     """
 
     acted_on = (Lemma("appear") | Lemma("act") | Lemma("star"))
@@ -135,49 +137,63 @@ class MovieReleaseDateQuestion(QuestionTemplate):
 
 class DirectorOfQuestion(QuestionTemplate):
     """
-    Ex: "Who is the director of Big Fish?"
-        "who directed Pocahontas?"
+    Ex: "'빅 피쉬'의 감독은 (누구지?)"
+        "포카혼타스는(를) 누가 감독했지?"
     """
 
-    regex = ((Lemmas("who be") + Pos("DT") + Lemma("director") +
-             Pos("IN") + Movie()) |
-             (Lemma("who") + Lemma("direct") + Movie())) + \
-            Question(Pos("."))
+    regex = (Movie() +
+             ((Question(Pos('JKG')) + Token('감독') + Question(be) +
+               Question(Token("누구")) + Question(Pos("VCP"))) |
+              (Question(Pos('JX') | Pos('JKO')) +
+               Tokens('누가 감독') + Question(Poss('XSV EF'))))
+             + Question(Pos("SF")))
 
     def interpret(self, match):
-        director = IsPerson() + DirectorOf(match.movie)
-        director_name = NameOf(director)
+        director = DirectorOf(SameAs(match.movie)) + IsPerson()
+        director_name = NameOf.to_korean(director)
         return director_name, "literal"
 
 
 class ActorsOfQuestion(QuestionTemplate):
     """
-    Ex: "who are the actors of Titanic?"
-        "who acted in Alien?"
-        "who starred in Depredator?"
-        "Actors of Fight Club"
+    Ex: "'파이트 클럽'의(에 출연한) 배우(들) (목록)"
+        "배트맨2의 배우는 누구누구지?"
+        "배트맨2(에|는) 누가 출연했지?"
+        "프레데터2(에|는) 누가 연기했지?"
     """
 
-    regex = (Lemma("who") + Question(Lemma("be") + Pos("DT")) +
-             (Lemma("act") | Lemma("actor") | Lemma("star")) +
-             Pos("IN") + Movie() + Question(Pos("."))) | \
-            ((Lemma("actors") | Lemma("actor")) + Pos("IN") + Movie())
+    regex1 = (Movie() +
+              Question(Pos('JKG') |
+                       (Pos('JKB') + Lemma('출연') + (Pos('XSA') | Pos('XSV ETM')))) +
+              (Token('배우') | Token('연기자')) + Star(Any()))
+    regex2 = (Movie() + Question(Pos('JKB')) + Question(Pos('JX')) +
+              (Token('누가') | Tokens('누구 누구')) +
+              (((Token('출연') | Token('연기')) + Question(Poss('XSV EF'))) |
+               ((Token('나왔') | Token('나오')) + Pos('EF')) |
+               Token('나와')) + Question(Pos('SF'))
+             )
+    regex = regex1 | regex2
 
     def interpret(self, match):
-        actor = NameOf(IsPerson() + StarsIn(match.movie))
+        actor = NameOf(StarsIn(SameAs(match.movie)) + IsPerson())
         return actor, "enum"
 
 
 class PlotOfQuestion(QuestionTemplate):
     """
-    Ex: "what is Shame about?"
-        "plot of Titanic"
+    Ex: "'파이트 클럽'은 어떤(뭐에 대한) 내용이지?"
+        "터미네이터의 플롯"
+        "터미네이터2의 내용"
     """
 
-    regex = ((Lemmas("what be") + Movie() + Lemma("about")) | \
-             (Question(Lemmas("what be the")) + Lemma("plot") +
-              Pos("IN") + Movie())) + \
-            Question(Pos("."))
+    regex1 = (Movie() + Question(Pos('JKG')) +
+              (Token('플롯') | Token('내용') | Token('줄거리') | Token('영')) + Star(Any()))
+    regex2 = (Movie() + Question(be) +
+              (Lemma('어떤') | Lemmas('어떠 한') | Lemma('무슨') |
+               ((Lemma('뭐') | Lemma('무엇')) + Lemmas('에 대한'))) +
+              (Token('내용') | Token('영화')) +
+              Question(Poss('VCP EF')) + Question(Pos('SF')))
+    regex = regex1 | regex2
 
     def interpret(self, match):
         definition = DefinitionOf(match.movie)

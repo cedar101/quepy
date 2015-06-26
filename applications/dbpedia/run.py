@@ -13,14 +13,15 @@ from flask import request, url_for
 from flask.ext.api import FlaskAPI, status, exceptions
 from flask.ext.api.response import APIResponse
 from flask.ext.api.exceptions import ParseError
+from flask.ext.rq import RQ, job
 
 import requests
 import ujson
 
-from redis import Redis
-from rq import Queue, Connection
-from rq.decorators import job
-import rq_dashboard
+# from redis import Redis
+# from rq import Queue, Connection
+# from rq.decorators import job
+# import rq_dashboard
 
 import answerer
 
@@ -58,6 +59,8 @@ result_struct = {
 
 middleware_url = 'http://tsuzie.afreeca.com/udp-middle.php?eQueueType=QUEUE&name='
 
+middleware_queue_name = 'AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET'
+
 def json2data(func):
     @wraps(func)
     def wrapper(url, data=None, json=None, **kwargs):
@@ -73,9 +76,9 @@ def json2data(func):
 
 requests.post = json2data(requests.post)
 
-def send_middleware(queue_name, resp, url=middleware_url):
-    if 'common' not in resp:
-        resp['common'] = dummy_common
+@job
+def send_middleware(resp, queue_name=middleware_queue_name, url=middleware_url):
+    resp.setdefaults('common', dummy_common)
 
     r = requests.post(url + queue_name, json=resp)
                       #data=json.dumps(resp, ensure_ascii=False))
@@ -86,14 +89,20 @@ def send_middleware(queue_name, resp, url=middleware_url):
 
 class MyFlaskAPI(FlaskAPI):
     def handle_api_exception(self, exc):
-        resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', exc.detail)
+        #resp_middle = send_middleware(exc.detail)
+        send_middleware.delay(exc.detail)
         return APIResponse(exc.detail, status=exc.status_code)
 
 app = MyFlaskAPI(__name__)
 # app.config.from_object(rq_dashboard.default_settings)
 # app.register_blueprint(rq_dashboard.blueprint)
 
+app.config['RQ_OTHER_HOST'] = 'localhost'
+app.config['RQ_OTHER_PORT'] = 6789
+app.config['RQ_OTHER_PASSWORD'] = None
+app.config['RQ_OTHER_DB'] = 0
 
+rq = RQ(app)
 
 # @app.route('/question', methods=['GET', 'POST'])
 # def process_question():
@@ -235,7 +244,8 @@ def process_answer():
 
     resp = dict(req_body, result=result)
 
-    resp_middle = send_middleware('AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET', resp)
+    #resp_middle = send_middleware(resp)
+    send_middleware.delay(resp)
 
     return resp
 

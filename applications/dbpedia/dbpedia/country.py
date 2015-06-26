@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 from refo import Star, Plus, Question, Any
 #from quepy.dsl import HasKeyword
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Token, Particle
-from dsl import HasKeyword, IsCountry, IncumbentOf, CapitalOf, \
+from dsl import DATASETS, HasKeyword, IsCountry, IncumbentOf, CapitalOf, \
     LabelOf, LanguageOf, PopulationOf, PresidentOf, PrimaryTopicOf, SameAs
 
 from .basic import nouns, be
@@ -25,9 +25,8 @@ class Country(Particle):
 
     def interpret(self, match):
         name = match.words.tokens.title()
-        country_ko = HasKeyword(name)
-        country_en = SameAs(country_ko) + IsCountry()
-        return country_en
+        country = SameAs(HasKeyword(name)) + IsCountry()
+        return country
 
 
 class PresidentOfQuestion(QuestionTemplate):
@@ -36,13 +35,14 @@ class PresidentOfQuestion(QuestionTemplate):
     Ex: "아르헨티나의 대통령은 (누구지)?"
     """
 
-    regex = (Country() + Question(Pos("JKG")) + Lemma("대통령") + Question(be) +
+    regex = (Country() + Question(Pos("JKG")) +
+             (Lemma("지도자") | Lemma("국가원수") | Lemma("대통령")) + Question(be) +
              Question(Lemma("누구")) + Question(Pos("VCP")) + Question(Pos("SF")))
 
     def interpret(self, match):
         president = PresidentOf(match.country)
         incumbent = IncumbentOf(president)
-        label = LabelOf(incumbent)
+        label = LabelOf.to_korean(incumbent)
 
         return label, "enum"
 
@@ -58,7 +58,7 @@ class CapitalOfQuestion(QuestionTemplate):
 
     def interpret(self, match):
         capital = CapitalOf(match.country)
-        label = LabelOf(capital)
+        label = LabelOf.to_korean(capital)
         return label, "enum"
 
 
@@ -67,16 +67,11 @@ class CapitalOfQuestion(QuestionTemplate):
 class LanguageOfQuestion(QuestionTemplate):
     """
     Regex for questions about the language spoken in a country.
-    Ex: "아르헨티나의 (언어|공용어|공용언어)는 (뭐지?)
-        "아르헨티나는 (어떤|무슨) (말|언어|공용어|공용언어)를 (말하지|하지|쓰지)?
+    Ex: "아르헨티나의 (언어|공용어|공용 언어|공식 언어)는 (뭐지?)
+        "아르헨티나는 (어떤|무슨) (말|언어|공용어|공용 언어|공식 언어)를 (말하지|하지|쓰지)?
     """
 
-    openings = (Lemma("what") + Token("is") + Pos("DT") +
-                Question(Lemma("official")) + Lemma("language")) | \
-               (Lemma("what") + Lemma("language") + Token("is") +
-                Lemma("speak"))
-
-    language = Lemma("언어") | Lemma("공용어") | Lemmas("공용 언어") | Lemma("말")
+    language = Lemma("언어") | Lemma("공용어") | Lemmas("공용 언어") | Lemmas("공식 언어") | Lemma("말")
     regex = (Country()
              + ((Question(Pos("JKG")) + language + Question(be)
                 + Question(Lemma("뭣") | Lemma("무엇"))
@@ -86,7 +81,8 @@ class LanguageOfQuestion(QuestionTemplate):
 
     def interpret(self, match):
         language = LanguageOf(match.country)
-        return language, "enum"
+        language_name = LabelOf.to_korean(language)
+        return language_name, "enum"
 
 
 class PopulationOfQuestion(QuestionTemplate):

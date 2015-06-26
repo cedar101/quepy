@@ -20,6 +20,11 @@ NLTK_DATA_PATH = []  # List of paths with NLTK data
 # Encoding config
 DEFAULT_ENCODING = "utf-8"
 
+DATASETS = {                                # for federated query
+    'en': 'GRAPH <http://dbpedia.org>',     # 'SERVICE <http://dbpedia.org/sparql>'
+    'ko': 'GRAPH <http://ko.dbpedia.org>',  # 'SERVICE <http://ko.dbpedia.org/sparql>'
+}
+
 # Sparql config
 SPARQL_PREAMBLE = u"""
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -29,9 +34,9 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX quepy: <http://www.machinalis.com/quepy#>
 PREFIX dbpedia: <http://dbpedia.org/ontology/>
-PREFIX dbpedia-ko: <http://ko.dbpedia.org/resource/>
 PREFIX dbpedia-owl: <http://dbpedia.org/ontology/>
 PREFIX dbpprop: <http://dbpedia.org/property/>
+PREFIX dbpedia-ko: <http://ko.dbpedia.org/ontology/>
 PREFIX prop-ko: <http://ko.dbpedia.org/property/>
 PREFIX grs: <http://www.georss.org/georss/>
 PREFIX schema: <http://schema.org/>

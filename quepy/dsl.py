@@ -50,7 +50,7 @@ class FixedRelation(Expression):
 
         self.nodes = copy(destination.nodes)
         self.head = destination.head
-
+        self.destination = destination
         self.decapitate(self.relation, reverse)
 
 
@@ -63,11 +63,14 @@ class FixedType(Expression):
 
     fixedtype = None
 
-    def __init__(self):
+    def __init__(self, dataset=None):
         super(FixedType, self).__init__()
         if self.fixedtype is None:
             raise ValueError("You *must* define the `fixedtype` "
                              "class attribute to use this class.")
+        if dataset is not None:
+            self.dataset = dataset
+
         self.add_data(self.relation, self.fixedtype)
 
 

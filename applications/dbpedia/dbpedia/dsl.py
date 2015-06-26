@@ -14,16 +14,13 @@ from __future__ import unicode_literals
 
 from quepy.expression import Expression
 
-DATASETS = {
-    'en': 'GRAPH <http://dbpedia.org>',
-    'ko': 'GRAPH <http://ko.dbpedia.org>',
-}
+from settings import DATASETS
 
 Expression.dataset = DATASETS['en'] # default
 
 import quepy.dsl
 reload(quepy.dsl)
-from quepy.dsl import FixedType, FixedRelation, FixedDataRelation, HasType, relation
+from quepy.dsl import FixedType, FixedDataRelation, HasType, relation
 
 @relation(u"(^(dbpedia-owl:wikiPageRedirects|dbpedia-owl:wikiPageDisambiguates)*)/rdfs:label")
 class HasKeyword(quepy.dsl.HasKeyword):
@@ -57,6 +54,8 @@ class IsTvShow(FixedType):
 
 class IsMovie(FixedType):
     fixedtype = "dbpedia-owl:Film"
+    # language = 'ko'
+    # dataset = DATASETS[language]
 
 class IsBook(FixedType):
     fixedtype = "dbpedia-owl:Book"
@@ -69,12 +68,20 @@ class HasShowName(FixedDataRelation):
 @relation("dbpprop:name")
 class HasName(FixedDataRelation):
     language = "en"
+    # language = 'ko'
+    # dataset = DATASETS[language]
 
 
 @relation("owl:sameAs")
-class SameAs(FixedRelation):
+class SameAs(quepy.dsl.FixedRelation):
     reverse = True
     dataset = DATASETS['ko']
+
+class FixedRelation(quepy.dsl.FixedRelation):
+    @classmethod
+    def to_korean(cls, destination):
+        return cls(SameAs(destination, DATASETS['en']), DATASETS['ko'])
+
 
 @relation("rdfs:comment")
 class DefinitionOf(FixedRelation):
@@ -102,7 +109,8 @@ class IncumbentOf(FixedRelation):
 class CapitalOf(FixedRelation):
     reverse = True
 
-@relation("dbpprop:officialLanguages")
+#@relation("dbpprop:officialLanguages")
+@relation("dbpedia-owl:officialLanguage")
 class LanguageOf(FixedRelation):
     reverse = True
 
@@ -110,7 +118,7 @@ class LanguageOf(FixedRelation):
 class PopulationOf(FixedRelation):
     reverse = True
 
-@relation("dbpedia-owl:bandMember")
+@relation("dbpedia-owl:bandMember") # |dbpedia-owl:formerBandMember")
 class IsMemberOf(FixedRelation):
     reverse = True
 
