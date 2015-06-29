@@ -199,14 +199,13 @@ def get_query(question):
 
 
 def query_sparql(query, target, query_type, metadata):
-    if query:
-        sparql.setQuery(query)
-        sparql.setReturnFormat(JSON)
-        print "Please wait...\n"
-        results = sparql.query().convert()
-        #import pdb; pdb.set_trace()
-        # if not results["results"]["bindings"]:
-        #     return "No answer found"
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    print "Please wait...\n"
+    results = sparql.query().convert()
+    #import pdb; pdb.set_trace()
+    # if not results["results"]["bindings"]:
+    #     return "No answer found"
 
     return process_handlers[query_type](results, target, metadata) #, query
 
