@@ -71,6 +71,6 @@ class WhereIsFromQuestion(QuestionTemplate):
 
     def interpret(self, match):
         birth_place = BirthPlaceOf(SameAs(match.person))
-        label = LabelOf(birth_place)
+        label = LabelOf.to_korean(birth_place)
 
         return label, "enum"

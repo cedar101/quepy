@@ -115,19 +115,12 @@ def answer():
 
     if app.config['RQ_DEFAULT_HOST'] is None:
         answers = list(answerer.query_sparql(query, target, query_type, metadata))
-
         param['answers'] = answers
-
         resp = dict(req_body, result=result)
-
         resp_middle = send_middleware(resp)
-
         return resp
     else:
         return process_query_sparql.delay(req_body, result,
                                           query, target, query_type, metadata).key
-
-
-    #return job.get_id()
 
 
