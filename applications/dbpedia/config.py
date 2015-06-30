@@ -34,6 +34,7 @@ class Config:
             }
         },
     }
+    FLASK_LOG_LEVEL = 'DEBUG'
 
     @staticmethod
     def init_app(app):
@@ -41,10 +42,15 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    RQ_DEFAULT_URL = 'unix:///tmp/redis.sock'
+    #RQ_DEFAULT_URL = 'unix:///tmp/redis.sock'
+    RQ_DEFAULT_HOST = 'localhost'
+    RQ_DEFAULT_PORT = 6379
 
 class StagingConfig(Config):
-    RQ_DEFAULT_URL = 'unix:///tmp/rmux.sock'
+    #RQ_DEFAULT_URL = 'unix:///tmp/rmux.sock'
+    RQ_DEFAULT_HOST = 'localhost'
+    RQ_DEFAULT_PORT = 63790
+
 
 config = {
     'development' : DevelopmentConfig,

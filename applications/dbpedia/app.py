@@ -14,6 +14,7 @@ from flask.ext.api import FlaskAPI, status, exceptions
 from flask.ext.api.response import APIResponse
 from flask.ext.api.exceptions import ParseError
 from flask.ext.rq import RQ, job
+from flask.ext.log import Logging
 
 import requests
 import ujson
@@ -21,41 +22,41 @@ import ujson
 from config import config
 import answerer
 
-DUMMY_COMMON = {
-  "common" :
-  {
-    "logname" : "CHAT-MESSAGE",
-    "tm" : "123456789",
-    "userid" : "ssanaii",
-    "usernick" : "사나이",
-    "bjid" : "afreecaai04",
-    "bno" : "xxxxxxxx",
-    "score" : "0.0123"
-  }
-}
+# DUMMY_COMMON = {
+#   "common" :
+#   {
+#     "logname" : "CHAT-MESSAGE",
+#     "tm" : "123456789",
+#     "userid" : "ssanaii",
+#     "usernick" : "사나이",
+#     "bjid" : "afreecaai04",
+#     "bno" : "xxxxxxxx",
+#     "score" : "0.0123"
+#   }
+# }
 
-RESULT_STRUCT = {
-    "type": "SPARQL",
-    "data": {
-        "intention": None,
-        "param": {
-            "match": None,
-            "result_type": None,
-            "query_string": None,
-            "answers": None,
-            "metadata": None
-        },
-        "status": {
-            "code": str(status.HTTP_200_OK),
-            "error_type": None,
-            "error_detail": None
-        }
-    },
-}
+# RESULT_STRUCT = {
+#     "type": "SPARQL",
+#     "data": {
+#         "intention": None,
+#         "param": {
+#             "match": None,
+#             "result_type": None,
+#             "query_string": None,
+#             "answers": None,
+#             "metadata": None
+#         },
+#         "status": {
+#             "code": str(status.HTTP_200_OK),
+#             "error_type": None,
+#             "error_detail": None
+#         }
+#     },
+# }
 
-MIDDLEWARE_URL = 'http://tsuzie.afreeca.com/udp-middle.php?eQueueType=QUEUE&name='
+# MIDDLEWARE_URL = 'http://tsuzie.afreeca.com/udp-middle.php?eQueueType=QUEUE&name='
 
-MIDDLEWARE_QUEUE_NAME = 'AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET'
+# MIDDLEWARE_QUEUE_NAME = 'AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET'
 
 def json2data(func):
     @wraps(func)
@@ -91,27 +92,30 @@ class MyFlaskAPI(FlaskAPI):
 
 #rq = RQ(app)
 rq = RQ()
+log = Logging()
 
 def create_app(config_name):
     app = MyFlaskAPI(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
-
     rq.init_app(app)
-
+    log.init_app(app)
     return app
 
 app = create_app(os.getenv('QUEPY_CONFIG') or 'default')
 
 #@job('default')
-def send_middleware(resp, queue_name=MIDDLEWARE_QUEUE_NAME, url=MIDDLEWARE_URL):
-    resp.setdefault('common', DUMMY_COMMON)
+def send_middleware(resp,
+                    queue_name=app.config['MIDDLEWARE_QUEUE_NAME'],
+                    url=app.config['MIDDLEWARE_URL']):
+    resp.setdefault('common', app.config['DUMMY_COMMON'])
 
     r = requests.post(url + queue_name, json=resp)
                       #data=json.dumps(resp, ensure_ascii=False))
     resp = r.text
     if int(resp) < 1:
         raise requests.exceptions.RequestException
+
     return resp
 
 @job('default')
@@ -121,6 +125,8 @@ def process_query_sparql(req_body, result, query, target, query_type, metadata):
     result['data']['param']['answers'] = answers
 
     resp = dict(req_body, result=result)
+
+    app.logger.debug(resp)
 
     return send_middleware(resp)
 
@@ -134,7 +140,7 @@ def answer():
     req_body = request.data
     chat_text = req_body['extension']['chat_text']
 
-    result = deepcopy(RESULT_STRUCT)
+    result = deepcopy(app.config['RESULT_STRUCT'])
     result_data = result["data"]
 
     try:
