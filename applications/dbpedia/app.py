@@ -22,42 +22,6 @@ import ujson
 from config import config
 import answerer
 
-# DUMMY_COMMON = {
-#   "common" :
-#   {
-#     "logname" : "CHAT-MESSAGE",
-#     "tm" : "123456789",
-#     "userid" : "ssanaii",
-#     "usernick" : "사나이",
-#     "bjid" : "afreecaai04",
-#     "bno" : "xxxxxxxx",
-#     "score" : "0.0123"
-#   }
-# }
-
-# RESULT_STRUCT = {
-#     "type": "SPARQL",
-#     "data": {
-#         "intention": None,
-#         "param": {
-#             "match": None,
-#             "result_type": None,
-#             "query_string": None,
-#             "answers": None,
-#             "metadata": None
-#         },
-#         "status": {
-#             "code": str(status.HTTP_200_OK),
-#             "error_type": None,
-#             "error_detail": None
-#         }
-#     },
-# }
-
-# MIDDLEWARE_URL = 'http://tsuzie.afreeca.com/udp-middle.php?eQueueType=QUEUE&name='
-
-# MIDDLEWARE_QUEUE_NAME = 'AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET'
-
 def json2data(func):
     @wraps(func)
     def wrapper(url, data=None, json=None, **kwargs):
@@ -79,18 +43,6 @@ class MyFlaskAPI(FlaskAPI):
         send_middleware(exc.detail)
         return APIResponse(exc.detail, status=exc.status_code)
 
-
-#app = MyFlaskAPI(__name__)
-# app.config.from_object(rq_dashboard.default_settings)
-# app.register_blueprint(rq_dashboard.blueprint)
-
-# app.config['RQ_DEFAULT_HOST'] = 'localhost'
-# app.config['RQ_DEFAULT_PORT'] = 6789
-# app.config['RQ_DEFAULT_PASSWORD'] = None
-# app.config['RQ_DEFAULT_DB'] = 0
-#app.config['RQ_DEFAULT_URL'] = 'unix:///tmp/redis.sock'
-
-#rq = RQ(app)
 rq = RQ()
 log = Logging()
 
@@ -126,9 +78,11 @@ def process_query_sparql(req_body, result, query, target, query_type, metadata):
 
     resp = dict(req_body, result=result)
 
+    send_middleware(resp)
+    send_middleware(resp, 'test.AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET')
     app.logger.debug(resp)
 
-    return send_middleware(resp)
+    return resp
 
 @app.route('/answer', methods=['GET', 'POST'])
 def answer():
