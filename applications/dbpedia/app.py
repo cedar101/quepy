@@ -113,19 +113,20 @@ def answer():
     param["query_string"] = query
     param["metadata"] = metadata
 
-    return process_query_sparql.delay(req_body, result,
-                                      query, target, query_type, metadata).key
+    if app.config['RQ_DEFAULT_HOST'] is None:
+        answers = list(answerer.query_sparql(query, target, query_type, metadata))
 
-    # answers = list(answerer.query_sparql(query, target, query_type, metadata))
+        param['answers'] = answers
 
-    # param['answers'] = answers
+        resp = dict(req_body, result=result)
 
-    # resp = dict(req_body, result=result)
+        resp_middle = send_middleware(resp)
 
-    # #resp_middle = send_middleware(resp)
-    # send_middleware.delay(resp)
+        return resp
+    else:
+        return process_query_sparql.delay(req_body, result,
+                                          query, target, query_type, metadata).key
 
-    # return resp
 
     #return job.get_id()
 

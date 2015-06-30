@@ -42,18 +42,20 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    #RQ_DEFAULT_URL = 'unix:///tmp/redis.sock'
     RQ_DEFAULT_HOST = 'localhost'
     RQ_DEFAULT_PORT = 6379
 
 class StagingConfig(Config):
-    #RQ_DEFAULT_URL = 'unix:///tmp/rmux.sock'
     RQ_DEFAULT_HOST = 'localhost'
     RQ_DEFAULT_PORT = 63790
 
+class NoQueueConfig(Config):
+    RQ_DEFAULT_HOST = None
+    RQ_DEFAULT_PORT = None
 
 config = {
     'development' : DevelopmentConfig,
     'staging' : StagingConfig,
+    'noqueue' : NoQueueConfig,
     'default' : DevelopmentConfig
 }
