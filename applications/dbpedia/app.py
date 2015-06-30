@@ -82,7 +82,7 @@ def process_query_sparql(req_body, result, query, target, query_type, metadata):
     send_middleware(resp, 'test.AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET')
     app.logger.debug(resp)
 
-    return resp
+    return answers
 
 @app.route('/answer', methods=['GET', 'POST'])
 def answer():
