@@ -12,13 +12,14 @@ Basic questions for DBpedia.
 """
 from __future__ import unicode_literals
 
-from refo import Group, Plus, Question
-from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, Particle, \
-                          Lemmas, Tokens, Poss
+from refo import Group, Plus, Question, Any
+import quepy.parsing
+from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, \
+                          Lemmas, Tokens, Poss, WordList
 from quepy.dsl import IsRelatedTo
 from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, PrimaryTopicOf, SameAs, HasType
 
-HasType.dataset = 'SERVICE <http://dbpedia.org>' #DATASETS['ko']
+#HasType.dataset = 'SERVICE <http://dbpedia.org>' #DATASETS['ko']
 
 #combine = lambda s: s.replace(' ', '')
 
@@ -26,6 +27,15 @@ HasType.dataset = 'SERVICE <http://dbpedia.org>' #DATASETS['ko']
 noun = Pos("NNG") | Pos("NNP") | Pos("SL")
 nouns = Plus(noun)
 be = (Pos("JKS") | Pos("JX"))
+quoted = Group((Token("'") + Plus(Any()) + Token("'")) |    # 따옴표를 사용하면
+               (Token('"') + Plus(Any()) + Token('"')),     # 어떤 품사든 사용 가능
+               "quoted")
+
+class Particle(quepy.parsing.Particle):
+    def __init__(self, name=None):
+        self.regex = self.regex | quoted
+        super(Particle, self).__init__(name)
+
 
 class Thing(Particle):
     regex = nouns
@@ -50,18 +60,6 @@ class WhatIs(QuestionTemplate):
         return label, "define"
 
 
-class Entity(Thing):
-    pass
-
-
-class Target(Particle):
-    regex = Pos("NNG")
-
-    def interpret(self, match):
-        keyword = HasKeyword(match.words.lemmas)
-        return keyword
-
-
 class ListEntity(QuestionTemplate):
     """
     XXX: No answer of SPARQL found.
@@ -73,14 +71,13 @@ class ListEntity(QuestionTemplate):
                (Question(Pos("JKO")) + Lemma("나열") + Pos("XSV") + Question(Pos("VX"))))
                + Question(Pos("SF")))
 
-    entity = Entity()   # Group(noun, "entity")
-    target = Target()   # Group(Pos("NNG"), "target")
+    entity = Group(noun, "entity")
+    target = Group(Pos("NNG"), "target")
     regex = entity + Question(Pos("JKG")) + target + closing
 
     def interpret(self, match):
-        entity = match.entity
-        target_type = match.target
-
+        entity = SameAs(HasKeyword(match.entity.tokens))
+        target_type = SameAs(HasKeyword(match.target.lemmas))
         # entity = HasKeyword(match.entity.tokens)
         # target_type = HasKeyword(match.target.lemmas)
         #import pdb; pdb.set_trace()
@@ -121,11 +118,12 @@ class WhatTimeIs(QuestionTemplate):
 
 class WhereIsQuestion(QuestionTemplate):
     """
-    Ex: "분당구는 어디지?", "분당구의 위치는?"
+    Ex: "분당구는 어디지?", "분당구의 위치는?", "분당구는 어디 있어?"
     """
 
-    regex = (Place() + ((Question(be) + Lemma("어디") + Question(Pos("VCP"))) |
-                      (Question(Pos("JKG")) + Lemma("위치") + Question(be)))
+    regex = (Place() +
+             ((Question(be) + Lemma("어디") + Question(Pos("VCP") | Poss('VA EF'))) |
+              (Question(Pos("JKG")) + Lemma("위치") + Question(be)))
              + Question(Pos("SF")))
 
 

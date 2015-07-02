@@ -16,10 +16,6 @@ from quepy.encodingpolicy import assert_valid_encoding
 
 logger = logging.getLogger("quepy.tagger")
 
-# PENN_TAGSET = set("$ `` '' ( ) , -- . : CC CD DT EX FW IN JJ JJR JJS LS MD "
-#                   "NN NNP NNPS NNS PDT POS PRP PRP$ RB RBR RBS RP SYM TO UH "
-#                   "VB VBD VBG VBN VBP VBZ WDT WP WP$ WRB".split())
-
 class TaggingError(Exception):
     """
     Error parsing tagger's output.

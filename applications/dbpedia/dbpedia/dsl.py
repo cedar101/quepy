@@ -22,6 +22,7 @@ import quepy.dsl
 reload(quepy.dsl)
 from quepy.dsl import FixedType, FixedDataRelation, HasType, relation
 
+
 @relation(u"(^(dbpedia-owl:wikiPageRedirects|dbpedia-owl:wikiPageDisambiguates)*)/rdfs:label")
 class HasKeyword(quepy.dsl.HasKeyword):
     '''Setup the Keywords for this application'''
@@ -29,9 +30,9 @@ class HasKeyword(quepy.dsl.HasKeyword):
     dataset = DATASETS[language]
     constraint = 'FILTER NOT EXISTS {{ {} rdf:type skos:Concept. }}'
 
-    # @staticmethod
-    # def sanitize(text):
-    #     return text.replace(' ', '')
+    @staticmethod
+    def sanitize(text):
+        return text.replace(' ', '')
 
 
 class IsPerson(FixedType):

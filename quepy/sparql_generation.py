@@ -8,7 +8,7 @@ from collections import namedtuple
 from itertools import groupby
 
 from quepy import settings
-from quepy.dsl import IsRelatedTo
+from quepy.dsl import IsRelatedTo, Relation
 from quepy.expression import isnode
 from quepy.encodingpolicy import assert_valid_encoding
 
@@ -45,7 +45,7 @@ def expression_to_tuples(e):
     for node in e.iter_nodes():
         for relation, dest in e.iter_edges(node):
             if relation is IsRelatedTo:
-                relation = e.Relation(u"?y{}".format(y),
+                relation = Relation(u"?y{}".format(y),
                                        e.dataset, e.constraint)
                 y += 1
             yield (adapt(node), relation, adapt(dest))

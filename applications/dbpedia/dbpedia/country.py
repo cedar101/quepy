@@ -14,11 +14,11 @@ from __future__ import unicode_literals
 
 from refo import Star, Plus, Question, Any
 #from quepy.dsl import HasKeyword
-from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Token, Particle
+from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Token
 from dsl import DATASETS, HasKeyword, IsCountry, IncumbentOf, CapitalOf, \
     LabelOf, LanguageOf, PopulationOf, PresidentOf, PrimaryTopicOf, SameAs
 
-from .basic import nouns, be
+from .basic import nouns, be, Particle
 
 class Country(Particle):
     regex = nouns

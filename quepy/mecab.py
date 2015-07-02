@@ -34,7 +34,7 @@ class MecabTagger(object):
                     if features[4].startswith('Inflect')
                     else surface)
         return Word(decode(surface, True), decode(lemma, True),
-                    first_pos.decode('ascii'))
+                    first_pos.decode('ascii'), node.cost)
 
     def parse(self, text):  # follow NLTK naming
         return [MecabTagger.tagged_tuple(node)

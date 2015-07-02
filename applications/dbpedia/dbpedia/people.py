@@ -17,10 +17,10 @@ from refo import Star, Plus, Question, Any
 from quepy.parsing import Lemma, Lemmas, Pos, QuestionTemplate, Particle
 from dsl import HasKeyword, IsPerson, LabelOf, DefinitionOf, BirthDateOf, BirthPlaceOf, SameAs, PrimaryTopicOf
 
-from .basic import nouns, be
+from .basic import nouns, be, quoted
 
 class Person(Particle):
-    regex = nouns
+    regex = nouns | quoted
 
     def interpret(self, match):
         name = match.words.tokens

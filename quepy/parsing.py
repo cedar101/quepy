@@ -34,12 +34,12 @@ class WordList(list):
         self.extend(words)
 
     @property
-    def tokens(self, sep=" "):
-        return " ".join(x.token for x in self)
+    def tokens(self, sep=" ", ignore_chars=("'", '"')):
+        return sep.join(x.token for x in self if x.token not in ignore_chars)
 
     @property
-    def lemmas(self):
-        return " ".join(x.lemma for x in self)
+    def lemmas(self, sep=" ", ignore_chars=("'", '"')):
+        return sep.join(x.lemma for x in self if x.lemma not in ignore_chars)
 
 
 class Match(object):

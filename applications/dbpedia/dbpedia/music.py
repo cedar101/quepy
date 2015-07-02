@@ -13,11 +13,11 @@ Music related regex
 
 from refo import Plus, Question, Star, Any
 #from quepy.dsl import HasKeyword
-from quepy.parsing import Token, Tokens, Lemma, Lemmas, Pos, Poss, QuestionTemplate, Particle
+from quepy.parsing import Token, Tokens, Lemma, Lemmas, Pos, Poss, QuestionTemplate
 from dsl import HasKeyword, IsBand, LabelOf, IsMemberOf, ActiveYears, MusicGenreOf, \
     NameOf, IsAlbum, ProducedBy, SameAs
 
-from .basic import nouns, be
+from .basic import nouns, be, Particle
 
 class MusicalArtist(Particle):
     ''' dbpedia-owl: MusicalArtist'''
@@ -61,20 +61,21 @@ class FoundationQuestion(QuestionTemplate):
 
     Ex: "핑크 플로이드는 언제 결성했어?"
         "언제 콘이 활동을 시작했지?"
+        "라디오헤드는 언제 나왔지?"
     """
 
     regex1 = (Question(Lemma('언제')) + Band() + Question(be) + Question(Lemma('언제'))
-              + (Lemma("결성") | (Lemma("활동") + Question(Pos('JKO')) + Lemma("시작"))) # 목적격 조사
-              + Poss('XSV EF') # 동사 파생 접미사 + (선어말 어미 생략) + 종결 어미
-              + Question(Pos("SF")))
-    regex2 = (Band() + Question(Pos('JKG')) + (Lemmas('결성 일') | Lemmas('활동 시작 일'))
+              + (((Lemma("결성") | (Lemma("활동") + Question(Pos('JKO')) + Lemma("시작"))) + Question(Pos('XSV')))
+                 | Lemma('나오'))
+              + Question(Pos('EF') | Pos('EC')) + Question(Pos("SF")))
+    regex2 = (Band() + Question(Pos('JKG')) + (Lemmas('결성 연도') | Lemmas('활동 시작 연도'))
               + Question(be)
               + Question(Lemma('언제')) + Question(Pos("VCF")) + Question(Pos("SF")))
     regex = regex1 | regex2
 
     def interpret(self, match):
         active_years = ActiveYears(match.band)
-        return active_years, "literal"
+        return active_years, ("literal", "{}년")
 
 
 class GenreQuestion(QuestionTemplate):
