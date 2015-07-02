@@ -24,10 +24,10 @@ from .basic import nouns, be, Particle
 class Movie(Particle):
     # 고유명사, 영어, 숫쟈로만 이루어진 제목은 따옴표 불필요
     regex = Plus(Pos("NNP") | Pos("SL")) + Question(Pos("SN"))
-    def interpret(self, match):
-        title = WordList(word for word in match.words if word.pos != 'SY').tokens
 
-        return HasKeyword(title) + IsMovie(dataset=DATASETS['ko'])
+    def interpret(self, match):
+        #title = WordList(word for word in match.words if word.pos != 'SY').tokens
+        return HasKeyword(match.words.tokens) + IsMovie(dataset=DATASETS['ko'])
 
 
 class Actor(Particle):
@@ -189,7 +189,7 @@ class PlotOfQuestion(QuestionTemplate):
               (Lemma('어떤') | Lemmas('어떠 한') | Lemma('무슨') |
                ((Lemma('뭐') | Lemma('무엇')) + Lemmas('에 대한'))) +
               (Token('내용') | Token('영화')) +
-              Question(Poss('VCP EF')) + Question(Pos('SF')))
+              Question(Pos('VCP')) + Question(Pos('EF')) + Question(Pos('SF')))
     regex = regex1 | regex2
 
     def interpret(self, match):
