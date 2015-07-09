@@ -22,11 +22,10 @@ from dsl import HasKeyword, IsMovie, NameOf, IsPerson, \
 from .basic import nouns, be
 
 class Movie(Particle):
-    # 고유명사, 영어, 숫쟈로만 이루어진 제목은 따옴표 불필요
-    regex = Plus(Pos("NNP") | Pos("SL")) + Question(Pos("SN"))
+    # 명사, 영어, 숫쟈로만 이루어진 제목은 따옴표 불필요
+    regex = (Plus(Pos("NNP") | Pos('NNG') | Pos("SL")) + Question(Pos("SN"))) | Pos('UNKNOWN')
 
     def interpret(self, match):
-        #title = WordList(word for word in match.words if word.pos != 'SY').tokens
         return HasKeyword(match.words.tokens) + IsMovie(dataset=DATASETS['ko'])
 
 

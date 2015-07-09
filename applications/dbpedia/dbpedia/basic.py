@@ -40,7 +40,7 @@ class Thing(Particle):
     regex = nouns
 
     def interpret(self, match):
-        keyword = HasKeyword(match.words.tokens, match.words[0].pos != 'UNKNOWN')
+        keyword = HasKeyword(match.words.tokens)
         return keyword
 
 

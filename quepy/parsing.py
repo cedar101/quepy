@@ -28,16 +28,14 @@ class WordList(list):
     A list of words with some utils for the user.
     """
 
-    def __init__(self, words, sep=" ", ignore_chars=("'", '"')):
+    def __init__(self, words, sep=" "):
         super(WordList, self).__init__(self)
         # Add the words to the list
         self.extend(words)
         self.sep = sep
-        self.ignore_chars = ignore_chars
 
     def getattrs(self, name):
-        return self.sep.join(getattr(x, name) for x in self
-                                if getattr(x, name) not in self.ignore_chars)
+        return self.sep.join(getattr(x, name) for x in self)
 
     @property
     def tokens(self):
@@ -62,28 +60,33 @@ class Match(object):
         self._particles = {particle.name: particle for particle in match
                            if isinstance(particle, Particle)}
 
+    def get_word_list(self, i, j):
+        return WordList(self._words[i:j], ' ' if i == j and self._words[i].pos == 'UNKNOWN' else '')
+
     @property
     def words(self):
         i, j = self._match.span()  # Should be (0, n)
         if self._i is not None:
             i, j = self._i, self._j
-        return WordList(self._words[i:j])
+        return self.get_word_list(i, j)
 
     def __getattr__(self, attr):
-        if attr in self._particles:
+        try:
             particle = self._particles[attr]
+        except KeyError:
+            try:
+                i, j = self._match[attr]
+            except KeyError:
+                message = "'{}' object has no attribute '{}'"
+                raise AttributeError(message.format(self.__class__.__name__, attr))
+            self._check_valid_indexes(i, j, attr)
+            return self.get_word_list(i, j)
+        else:
             i, j = self._match[particle]
             self._check_valid_indexes(i, j, attr)
             match = Match(self._match, self._words, i, j)
             return particle.interpret(match)
 
-        try:
-            i, j = self._match[attr]
-        except KeyError:
-            message = "'{}' object has no attribute '{}'"
-            raise AttributeError(message.format(self.__class__.__name__, attr))
-        self._check_valid_indexes(i, j, attr)
-        return WordList(self._words[i:j])
 
     def _check_valid_indexes(self, i, j, attr):
         if self._i is None:
