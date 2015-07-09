@@ -52,7 +52,7 @@ class Word(object):
     def __repr__(self):
         return unicode(self)
 
-quotation_re = regex.compile(r"^((\p{Quotation_Mark=Yes})(?<quotation>.+?)\2)?(?<remainder>.+)$")
+quotation_re = regex.compile(r"^((\p{Quotation_Mark}|\p{Pi})(?<quotation>.+?)(\p{Quotation_Mark}|\p{Pf}))?(?<remainder>.+)$")
 
 def get_tagger():
     """
