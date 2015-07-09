@@ -14,12 +14,12 @@ from __future__ import unicode_literals
 
 from refo import Plus, Question, Star, Any
 #from quepy.dsl import HasKeyword
-from quepy.parsing import Lemma, Lemmas, Pos, Poss, Token, Tokens, QuestionTemplate, WordList
+from quepy.parsing import Lemma, Lemmas, Pos, Poss, Token, Tokens, QuestionTemplate, WordList, Particle
 from dsl import HasKeyword, IsMovie, NameOf, IsPerson, \
     DirectedBy, LabelOf, DurationOf, HasActor, HasName, ReleaseDateOf, \
     DirectorOf, StarsIn, DefinitionOf, SameAs, DATASETS
 
-from .basic import nouns, be, Particle
+from .basic import nouns, be
 
 class Movie(Particle):
     # 고유명사, 영어, 숫쟈로만 이루어진 제목은 따옴표 불필요

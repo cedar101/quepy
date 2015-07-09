@@ -13,9 +13,8 @@ Basic questions for DBpedia.
 from __future__ import unicode_literals
 
 from refo import Group, Plus, Question, Any
-import quepy.parsing
 from quepy.parsing import Lemma, Pos, QuestionTemplate, Token, \
-                          Lemmas, Tokens, Poss, WordList
+                          Lemmas, Tokens, Poss, WordList, Particle
 from quepy.dsl import IsRelatedTo
 from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, PrimaryTopicOf, SameAs, HasType
 
@@ -24,24 +23,24 @@ from dsl import HasKeyword, DefinitionOf, LabelOf, IsPlace, UTCof, LocationOf, P
 #combine = lambda s: s.replace(' ', '')
 
 # NNG: 일반 명사, NNP: 고유 명사, SL: 외국어
-noun = Pos("NNG") | Pos("NNP") | Pos("SL")
+noun = Pos("NNG") | Pos("NNP") | Pos("SL") | Pos('UNKNOWN')
 nouns = Plus(noun)
 be = (Pos("JKS") | Pos("JX"))
-quoted = Group((Token("'") + Plus(Any()) + Token("'")) |    # 따옴표를 사용하면
-               (Token('"') + Plus(Any()) + Token('"')),     # 어떤 품사든 사용 가능
-               "quoted")
+# quoted = Group((Token("'") + Plus(Any()) + Token("'")) |    # 따옴표를 사용하면
+#                (Token('"') + Plus(Any()) + Token('"')),     # 어떤 품사든 사용 가능
+#                "quoted")
 
-class Particle(quepy.parsing.Particle):
-    def __init__(self, name=None):
-        self.regex = self.regex | quoted
-        super(Particle, self).__init__(name)
+# class Particle(quepy.parsing.Particle):
+#     def __init__(self, name=None):
+#         self.regex = self.regex | quoted
+#         super(Particle, self).__init__(name)
 
 
 class Thing(Particle):
     regex = nouns
 
     def interpret(self, match):
-        keyword = HasKeyword(match.words.tokens)
+        keyword = HasKeyword(match.words.tokens, match.words[0].pos != 'UNKNOWN')
         return keyword
 
 

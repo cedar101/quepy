@@ -9,7 +9,7 @@
 
 import refo
 import logging
-from refo import Predicate, Literal, Star, Any, Group
+from refo import Predicate, Literal, Star, Plus, Any, Group
 
 from quepy.encodingpolicy import encoding_flexible_conversion
 
@@ -21,25 +21,31 @@ class BadSemantic(Exception):
     """
     Problem with the semantic.
     """
-
+    pass
 
 class WordList(list):
     """
     A list of words with some utils for the user.
     """
 
-    def __init__(self, words):
+    def __init__(self, words, sep=" ", ignore_chars=("'", '"')):
         super(WordList, self).__init__(self)
         # Add the words to the list
         self.extend(words)
+        self.sep = sep
+        self.ignore_chars = ignore_chars
+
+    def getattrs(self, name):
+        return self.sep.join(getattr(x, name) for x in self
+                                if getattr(x, name) not in self.ignore_chars)
 
     @property
-    def tokens(self, sep=" ", ignore_chars=("'", '"')):
-        return sep.join(x.token for x in self if x.token not in ignore_chars)
+    def tokens(self):
+        return self.getattrs('token')
 
     @property
-    def lemmas(self, sep=" ", ignore_chars=("'", '"')):
-        return sep.join(x.lemma for x in self if x.lemma not in ignore_chars)
+    def lemmas(self):
+        return self.getattrs('lemma')
 
 
 class Match(object):
@@ -165,6 +171,9 @@ class Token(Pos):
     def _check(self, word):
         return word.token == self.tag
 
+# quotation = Group((Token("'") + Plus(Any()) + Token("'")) |    # 따옴표를 사용하면
+#                   (Token('"') + Plus(Any()) + Token('"')),     # 어떤 품사든 사용 가능
+#                   "quotation")
 
 class Particle(Group):
     regex = None
@@ -173,6 +182,11 @@ class Particle(Group):
         if self.regex is None:
             message = "A regex must be defined for {}"
             raise NotImplementedError(message.format(self.__class__.__name__))
+
+        # self.regex = (quotation
+        #               if self.regex is None or self.regex == quotation
+        #               else quotation | self.regex)
+
         if name is None:
             name = self.__class__.__name__.lower()
         self.name = name

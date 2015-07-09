@@ -101,8 +101,9 @@ class HasKeyword(FixedDataRelation):
     Abstraction of an information retrieval key, something standarized used
     to look up things in the database.
     """
-    def __init__(self, data):
-        data = self.sanitize(data)
+    def __init__(self, data, sanitize=True):
+        if sanitize:
+            data = self.sanitize(data)
         #super(self.__class__, self).__init__(data)
         super(HasKeyword, self).__init__(data)
         #FixedDataRelation.__init__(self, data)

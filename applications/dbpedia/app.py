@@ -79,7 +79,7 @@ def process_query_sparql(req_body, result, query, target, query_type, metadata):
     resp = dict(req_body, result=result)
 
     send_middleware(resp)
-    send_middleware(resp, 'test.AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET')
+    #send_middleware(resp, 'test.AF.AI_USER.CHAT-MESSAGE.NLP.SPARQL.RET')
     app.logger.debug(resp)
 
     return answers

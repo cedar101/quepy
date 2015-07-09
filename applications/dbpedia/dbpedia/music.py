@@ -13,11 +13,11 @@ Music related regex
 
 from refo import Plus, Question, Star, Any
 #from quepy.dsl import HasKeyword
-from quepy.parsing import Token, Tokens, Lemma, Lemmas, Pos, Poss, QuestionTemplate
+from quepy.parsing import Token, Tokens, Lemma, Lemmas, Pos, Poss, QuestionTemplate, Particle
 from dsl import HasKeyword, IsBand, LabelOf, IsMemberOf, ActiveYears, MusicGenreOf, \
     NameOf, IsAlbum, ProducedBy, SameAs
 
-from .basic import nouns, be, Particle
+from .basic import nouns, be
 
 class MusicalArtist(Particle):
     ''' dbpedia-owl: MusicalArtist'''

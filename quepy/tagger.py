@@ -10,9 +10,11 @@
 from __future__ import unicode_literals
 
 import logging
+import regex
 
 from quepy import settings
 from quepy.encodingpolicy import assert_valid_encoding
+from quepy.parsing import WordList
 
 logger = logging.getLogger("quepy.tagger")
 
@@ -50,6 +52,7 @@ class Word(object):
     def __repr__(self):
         return unicode(self)
 
+quotation_re = regex.compile(r"^((\p{Quotation_Mark=Yes})(?<quotation>.+?)\2)?(?<remainder>.+)$")
 
 def get_tagger():
     """
@@ -63,11 +66,16 @@ def get_tagger():
 
     def wrapper(string):
         assert_valid_encoding(string)
-        with Tagger() as tagger:
-            words = tagger.parse(string)
-        # for word in words:
-        #     if word.pos not in Tagger.TAGSET:
-        #         logger.warning("Tagger emmited a non-mecab "
-        #                        "POS tag {!r}".format(word.pos))
+        match = quotation_re.match(string)
+        quotation = match.group('quotation')
+        if quotation is None:
+            with Tagger() as tagger:
+                words = tagger.parse(string)
+        else:
+            remainder = match.group('remainder')
+            with Tagger() as tagger:
+                words = tagger.parse('Q' + remainder)   # dummy placeholder
+            words[0] = Word(quotation, quotation, u'UNKNOWN')
         return words
+
     return wrapper
