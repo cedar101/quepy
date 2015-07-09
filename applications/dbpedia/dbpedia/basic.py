@@ -50,7 +50,7 @@ class WhatIs(QuestionTemplate):
     """
     # JKS: 주격 조사(이/가), JX: 보조사(은/는), VCP: 긍정 지정사(이다), SF: 마침표, 물음표, 느낌표
     regex = (Thing() + Question(Pos('JKG')) + Question(Token('정의')) + Question(be) +
-             Question((Lemma('뭣') + Pos('VCP')) | Lemma('무엇') + Poss('VCP EF')) +
+             Question(((Lemma('뭣') | Lemma('뭐')) + Pos('VCP')) | Lemma('무엇') + Poss('VCP EF')) +
              Question(Pos("SF")))
 
     def interpret(self, match):
