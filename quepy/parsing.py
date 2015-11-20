@@ -61,7 +61,7 @@ class Match(object):
                            if isinstance(particle, Particle)}
 
     def get_word_list(self, i, j):
-        return WordList(self._words[i:j], ' ' if i == j and self._words[i].pos == 'UNKNOWN' else '')
+        return WordList(self._words[i:j], '') #' ' if i == j and self._words[i].pos == 'UNKNOWN' else '')
 
     @property
     def words(self):

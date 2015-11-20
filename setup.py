@@ -4,22 +4,22 @@ except ImportError:
     from distutils.core import setup
 
 setup(
-    name="quepy",
+    name="quepy-ko",
     version="0.2",
-    description="A framework to convert natural language to database queries.",
+    description="Quepy fork fo Korean language and SPARQL constraint support",
     long_description=open('README.rst').read(),
-    author="Rafael Carrascosa, Gonzalo Garcia Berrotaran",
-    author_email="rafacarrascosa@gmail.com",
-    url="https://github.com/machinalis/quepy",
+    author="Baeg-il Kim",
+    author_email="cedar101@gmail.com",
+    url="https://github.com/cedar101/quepy-ko",
     keywords=["regular expressions", "regexp", "re", "NLP",
               "natural language processing",
               "natural language interface to database", "sparql", "database",
-              "interface", "quepy"],
+              "interface", "quepy", "quepy-ko", "Korean", "Korean language"],
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
-        "Natural Language :: English",
+        "Natural Language :: Korean",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Topic :: Database",
@@ -29,8 +29,8 @@ setup(
         "Topic :: Text Processing :: Linguistic",
         "Topic :: Text Processing",
         "Topic :: Utilities",
-        ],
-    packages=["quepy"],
-    install_requires=["refo", "nltk", "SPARQLWrapper", "docopt"],
+    ],
+    packages=["quepy-ko"],
+    install_requires=["refo", "nltk", "SPARQLWrapper", "docopt", "natto-py"],
     scripts=["scripts/quepy"]
 )
