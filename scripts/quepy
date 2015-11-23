@@ -258,8 +258,7 @@ def autotest(app_name):
     if not errors_found:
         print "No errors were found :)"
 
-
-if __name__ == "__main__":
+def main():
     args = docopt(__doc__)
     if args["startapp"]:
         startapp(args["<name>"])
@@ -275,3 +274,6 @@ if __name__ == "__main__":
         autotest(args["<app_name>"])
     elif args["-v"] or args["--version"]:
         print_version()
+
+if __name__ == "__main__":
+    main()

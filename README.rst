@@ -1,11 +1,11 @@
-::                              
+::
 
-    __ _ _   _  ___ _ __  _   _
-   / _` | | | |/ _ \ '_ \| | | |
-  | (_| | |_| |  __/ |_) | |_| |
-   \__, |\__,_|\___| .__/ \__, |
-      |_|          |_|    |___/
-
+                                     _
+   __ _ _   _  ___ _ __  _   _      | | _____
+  / _` | | | |/ _ \ '_ \| | | |_____| |/ / _ \
+ | (_| | |_| |  __/ |_) | |_| |_____|   < (_) |
+  \__, |\__,_|\___| .__/ \__, |     |_|\_\___/
+     |_|          |_|    |___/
 
 What's quepy?
 =============
@@ -18,7 +18,7 @@ can build your own system for natural language access to your database.
 Currently **Quepy** provides support for
 `Sparql <http://www.w3.org/TR/rdf-sparql-query/>`_ and
 `MQL <http://www.freebase.com/>`_
-query languages. 
+query languages.
 We plan to extended it to other database query languages.
 
 
@@ -45,7 +45,7 @@ And it will output something like this:
         ?x0 rdfs:label "Tom Cruise"@en.
         ?x0 rdfs:comment ?x1.
     }
-    
+
     Thomas Cruise Mapother IV, widely known as Tom Cruise, is an...
 
 The transformation from natural language to sparql is done by first using a
@@ -94,7 +94,7 @@ You need to have installed `docopt <http://docopt.org>`_ and `numpy <http://nump
 Other than that, you can just type:
 
 ::
-    
+
     pip install quepy
 
 You can get more details on the installation here:
