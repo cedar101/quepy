@@ -133,7 +133,7 @@ class QuestionTemplate(object):
         try:
             expression, userdata = result
         except TypeError:
-            expression, userdata = result, None
+            expression, userdata = result, match.words #None
 
         expression.rule_used = rulename
         return expression, userdata
@@ -185,10 +185,6 @@ class Particle(Group):
         if self.regex is None:
             message = "A regex must be defined for {}"
             raise NotImplementedError(message.format(self.__class__.__name__))
-
-        # self.regex = (quotation
-        #               if self.regex is None or self.regex == quotation
-        #               else quotation | self.regex)
 
         if name is None:
             name = self.__class__.__name__.lower()

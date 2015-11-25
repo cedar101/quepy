@@ -20,12 +20,16 @@ from quepy.mql_generation import generate_mql
 from quepy.dot_generation import expression_to_dot
 from quepy.sparql_generation import expression_to_sparql
 
-
 def get_code(expression, language):
     """
     Given an expression and a supported language, it
     returns the query for that expression on that language.
     """
+    def get_node_data(expression):
+        for node in expression.nodes:
+            for relation, value in node:
+                if isinstance(value, basestring):
+                    return value, relation.iri
 
     if language == "sparql":
         return expression_to_sparql(expression)
@@ -33,6 +37,8 @@ def get_code(expression, language):
         return expression_to_dot(expression)
     elif language == "mql":
         return generate_mql(expression)
+    elif language == "dummy":
+        return get_node_data(expression)
     else:
         message = u"Language '{}' is not supported"
         raise ValueError(message.format(language))
