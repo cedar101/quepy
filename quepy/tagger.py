@@ -52,7 +52,7 @@ class Word(object):
     def __repr__(self):
         return unicode(self)
 
-quotation_re = regex.compile(r"^((\p{Quotation_Mark}|\p{Pi})(?<quotation>.+?)(\p{Quotation_Mark}|\p{Pf}))?(?<remainder>.+)$")
+quotation_re = regex.compile(r"((\p{Quotation_Mark}|\p{Pi})(?<quotation>.+?)(\p{Quotation_Mark}|\p{Pf}))")
 
 def get_tagger():
     """
@@ -64,18 +64,20 @@ def get_tagger():
     from mecab import MecabTagger
     Tagger = MecabTagger
 
-    def wrapper(string):
-        assert_valid_encoding(string)
-        match = quotation_re.match(string)
+    def wrapper(s):
+        assert_valid_encoding(s)
+        match = quotation_re.search(s)
+
+        if match is None:
+            with Tagger() as tagger:
+                words = tagger.parse(s)
+            return words
+
+        with Tagger() as tagger:
+            words = tagger.parse(''.join((s[:match.start()], 'Q', s[match.end():])))   # Q: dummy placeholder
         quotation = match.group('quotation')
-        if quotation is None:
-            with Tagger() as tagger:
-                words = tagger.parse(string)
-        else:
-            remainder = match.group('remainder')
-            with Tagger() as tagger:
-                words = tagger.parse('Q' + remainder)   # dummy placeholder
-            words[0] = Word(quotation, quotation, u'UNKNOWN')
-        return words
+        unknown = Word(quotation, quotation, u'UNKNOWN')
+
+        return [(unknown if word.token == 'Q' else word) for word in words]
 
     return wrapper

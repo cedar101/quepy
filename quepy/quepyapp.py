@@ -45,10 +45,10 @@ def install(app_name):
     return QuepyApp(**modules)
 
 
-def question_sanitize(question):
-    question = question.replace("'", "\'")
-    question = question.replace("\"", "\\\"")
-    return question
+# def question_sanitize(question):
+#     question = question.replace("'", "\'")
+#     question = question.replace("\"", "\\\"")
+#     return question
 
 
 class QuepyApp(object):
@@ -101,7 +101,7 @@ class QuepyApp(object):
         The query returned corresponds to the first regex that matches in
         weight order.
         """
-        question = question_sanitize(question)
+        #question = question_sanitize(question)
         for target, query, userdata, rule_used in self.get_queries(question):
             return target, query, userdata, rule_used
         return None, None, None, None

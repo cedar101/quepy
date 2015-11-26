@@ -32,7 +32,7 @@ class MecabTagger(object):
         first_pos = features[0].partition('+')[0]
         lemma = (features[7].partition('/')[0]
                     if features[4].startswith('Inflect')
-                    else surface)
+                    else surface.lower())
         return Word(decode(surface, True), decode(lemma, True),
                     first_pos.decode('ascii'), node.cost)
 
