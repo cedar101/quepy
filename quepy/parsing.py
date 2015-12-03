@@ -118,7 +118,7 @@ class QuestionTemplate(object):
         rulename = self.__class__.__name__
         logger.debug("Trying to match with regex: {}".format(rulename))
 
-        match = refo.search(self.regex + Literal(_EOL), words + [_EOL]) # <- match()
+        match = refo.match(self.regex + Literal(_EOL), words + [_EOL])
 
         if not match:
             logger.debug("No match")
